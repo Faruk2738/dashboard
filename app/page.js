@@ -34,28 +34,21 @@ export default function IntroPage() {
     const video = videoRef.current;
     if (!video) return;
 
+    // Önce sesli olarak çalmayı dene
+    video.muted = false;
     const playPromise = video.play();
+    
     if (playPromise !== undefined) {
       playPromise.catch(error => {
+        // Autoplay blocked, mute et ve tekrar dene
         console.log("Autoplay blocked. Retrying with mute...");
         video.muted = true;
-        video.play().then(() => {
-          // Ses açmayı dene
-          setTimeout(() => {
-            video.muted = false;
-            setIsMuted(false);
-          }, 500);
-        }).catch(e => {
+        setIsMuted(true);
+        video.play().catch(e => {
           console.error("Play failed even with mute. Showing overlay.", e);
           showOverlay();
         });
       });
-    } else {
-      // Ses açılı olsun
-      setTimeout(() => {
-        video.muted = false;
-        setIsMuted(false);
-      }, 500);
     }
   }, []);
 
@@ -68,7 +61,6 @@ export default function IntroPage() {
           className="w-full h-full object-contain"
           onEnded={showOverlay}
           autoPlay
-          muted={isMuted}
           playsInline
         />
       )}
@@ -77,16 +69,23 @@ export default function IntroPage() {
         <div className="absolute top-6 right-6 z-20 flex gap-3">
           <button 
             onClick={toggleMute}
-            className="text-white/60 bg-transparent border border-white/30 px-3 py-2 rounded-full cursor-pointer hover:text-white hover:border-white hover:bg-white/10 transition-all flex items-center gap-2"
-            title={isMuted ? "Unmute" : "Mute"}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all font-semibold ${
+              isMuted 
+                ? 'bg-red-500 text-white border border-red-600 hover:bg-red-600 hover:shadow-lg hover:shadow-red-500/50 animate-pulse' 
+                : 'text-white/60 bg-transparent border border-white/30 hover:text-white hover:border-white hover:bg-white/10'
+            }`}
+            title={isMuted ? "Click to unmute audio" : "Mute"}
           >
             {isMuted ? (
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-              </svg>
+              <>
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+                <span className="text-sm">🔇 Unmute</span>
+              </>
             ) : (
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M16.6 5.05c-.56-.46-1.45-.46-2.01 0l-.73.73c-.56.46-.56 1.22 0 1.68l.73.73c.56.46 1.45.46 2.01 0l.73-.73c.56-.46.56-1.22 0-1.68l-.73-.73zM19.07 7.56c.81-.81.81-2.12 0-2.93l-1.46-1.46c-.81-.81-2.12-.81-2.93 0l-1.07 1.07c-.56.46-.56 1.22 0 1.68l.73.73c.56.46 1.45.46 2.01 0l1.72-1.72c.56-.46.56-1.22 0-1.68-.56-.46-1.45-.46-2.01 0l-.73.73c-.56.46-.56 1.22 0 1.68l1.46 1.46c.81.81 2.12.81 2.93 0l1.35-1.35zM3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02z"/>
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.26 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
               </svg>
             )}
           </button>
