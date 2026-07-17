@@ -1,0 +1,372 @@
+{
+  "totalRevenue": 29358677.88994956,
+  "totalProfit": 12080819.829999821,
+  "margin": 41.14905948859326,
+  "uniqueOrders": 27659,
+  "uniqueCustomers": 18484,
+  "avgOrderValue": 1061.451169237845,
+  "monthlySales": [
+    {
+      "month": "2017-07",
+      "revenue": 934028.8000000014,
+      "profit": 376178.93
+    },
+    {
+      "month": "2017-08",
+      "revenue": 519494.17000000057,
+      "profit": 207152.24000000043
+    },
+    {
+      "month": "2017-09",
+      "revenue": 513329.5100000004,
+      "profit": 206122.3000000004
+    },
+    {
+      "month": "2017-10",
+      "revenue": 561681.5100000005,
+      "profit": 226030.17000000048
+    },
+    {
+      "month": "2017-11",
+      "revenue": 737839.8700000009,
+      "profit": 296125.83000000066
+    },
+    {
+      "month": "2017-12",
+      "revenue": 596746.6000000004,
+      "profit": 240321.56000000055
+    },
+    {
+      "month": "2018-01",
+      "revenue": 614557.9800000009,
+      "profit": 245077.2300000007
+    },
+    {
+      "month": "2018-02",
+      "revenue": 580393.9900000007,
+      "profit": 233802.0800000004
+    },
+    {
+      "month": "2018-03",
+      "revenue": 700873.2300000009,
+      "profit": 282034.5400000005
+    },
+    {
+      "month": "2018-04",
+      "revenue": 636375.3500000007,
+      "profit": 257285.47000000053
+    },
+    {
+      "month": "2018-05",
+      "revenue": 691261.4300000006,
+      "profit": 279146.83000000066
+    },
+    {
+      "month": "2018-06",
+      "revenue": 485867.29999999877,
+      "profit": 195899.01000000013
+    },
+    {
+      "month": "2018-07",
+      "revenue": 546001.3599999988,
+      "profit": 221445.5500000002
+    },
+    {
+      "month": "2018-08",
+      "revenue": 363610.4299999994,
+      "profit": 147611.11999999997
+    },
+    {
+      "month": "2018-09",
+      "revenue": 402246.7199999992,
+      "profit": 166621.5599999999
+    },
+    {
+      "month": "2018-10",
+      "revenue": 355133.15999999957,
+      "profit": 144549.60999999984
+    },
+    {
+      "month": "2018-11",
+      "revenue": 557275.9399999985,
+      "profit": 233058.54000000018
+    },
+    {
+      "month": "2018-12",
+      "revenue": 438865.2199999989,
+      "profit": 183727.97999999992
+    },
+    {
+      "month": "2019-01",
+      "revenue": 530150.1499999985,
+      "profit": 222603.40000000002
+    },
+    {
+      "month": "2019-02",
+      "revenue": 444515.0999999989,
+      "profit": 186479.54999999993
+    },
+    {
+      "month": "2019-03",
+      "revenue": 528479.3299999987,
+      "profit": 222380.54
+    },
+    {
+      "month": "2019-04",
+      "revenue": 540692.7099999983,
+      "profit": 228909.3300000001
+    },
+    {
+      "month": "2019-05",
+      "revenue": 578691.4799999981,
+      "profit": 244336.00000000012
+    },
+    {
+      "month": "2019-06",
+      "revenue": 862776.7099999887,
+      "profit": 352828.360000001
+    },
+    {
+      "month": "2019-07",
+      "revenue": 847413.5099999743,
+      "profit": 353399.01000000106
+    },
+    {
+      "month": "2019-08",
+      "revenue": 1034193.819999971,
+      "profit": 430351.2900000043
+    },
+    {
+      "month": "2019-09",
+      "revenue": 1056513.8899999708,
+      "profit": 439330.4900000042
+    },
+    {
+      "month": "2019-10",
+      "revenue": 1260033.699999975,
+      "profit": 521846.630000005
+    },
+    {
+      "month": "2019-11",
+      "revenue": 1668735.1799999767,
+      "profit": 686510.17000001
+    },
+    {
+      "month": "2019-12",
+      "revenue": 1340244.9499999713,
+      "profit": 554953.5800000065
+    },
+    {
+      "month": "2020-01",
+      "revenue": 1572639.9099999764,
+      "profit": 650062.3700000105
+    },
+    {
+      "month": "2020-02",
+      "revenue": 1370745.0999999738,
+      "profit": 567777.220000008
+    },
+    {
+      "month": "2020-03",
+      "revenue": 1691178.909999974,
+      "profit": 695921.6500000128
+    },
+    {
+      "month": "2020-04",
+      "revenue": 1795889.1299999747,
+      "profit": 746282.8200000104
+    },
+    {
+      "month": "2020-05",
+      "revenue": 1951195.8999999748,
+      "profit": 807294.1600000164
+    },
+    {
+      "month": "2020-06",
+      "revenue": 49005.83999999984,
+      "profit": 27362.710000000003
+    }
+  ],
+  "territorySales": [
+    {
+      "territory": "Australia",
+      "revenue": 9061000.720001858,
+      "profit": 3685844.1499999776
+    },
+    {
+      "territory": "Southwest",
+      "revenue": 5718151.070002073,
+      "profit": 2371750.0899999724
+    },
+    {
+      "territory": "Northwest",
+      "revenue": 3649866.7200010084,
+      "profit": 1519620.7200000212
+    },
+    {
+      "territory": "United Kingdom",
+      "revenue": 3391712.2400007197,
+      "profit": 1390483.7099999974
+    },
+    {
+      "territory": "Germany",
+      "revenue": 2894312.360000416,
+      "profit": 1187365.3500000054
+    },
+    {
+      "territory": "France",
+      "revenue": 2644017.740000329,
+      "profit": 1086258.960000018
+    },
+    {
+      "territory": "Canada",
+      "revenue": 1977844.8899999761,
+      "profit": 829910.8800000404
+    },
+    {
+      "territory": "Southeast",
+      "revenue": 12238.849999999993,
+      "profit": 5332.369999999998
+    },
+    {
+      "territory": "Northeast",
+      "revenue": 6532.469999999996,
+      "profit": 2902.7099999999996
+    },
+    {
+      "territory": "Central",
+      "revenue": 3000.8299999999967,
+      "profit": 1350.8900000000003
+    }
+  ],
+  "channelSales": {
+    "Internet": {
+      "revenue": 29358677.88994956,
+      "profit": 12080819.829999821
+    },
+    "Reseller": {
+      "revenue": 0,
+      "profit": 0
+    }
+  },
+  "categorySales": [
+    {
+      "category": "Bikes",
+      "revenue": 28318145.319993153,
+      "profit": 11505798.930000331
+    },
+    {
+      "category": "Accessories",
+      "revenue": 700759.9599997756,
+      "profit": 438599.6500000273
+    },
+    {
+      "category": "Clothing",
+      "revenue": 339772.609999959,
+      "profit": 136421.25000000678
+    }
+  ],
+  "latestDate": "2020-06-15",
+  "topCustomers": [
+    {
+      "name": "Nichole Nara",
+      "orders": 5,
+      "revenue": 13295.38,
+      "lastOrderDate": "2020-04-22"
+    },
+    {
+      "name": "Kaitlyn Henderson",
+      "orders": 5,
+      "revenue": 13294.269999999999,
+      "lastOrderDate": "2020-03-19"
+    },
+    {
+      "name": "Margaret He",
+      "orders": 5,
+      "revenue": 13269.269999999999,
+      "lastOrderDate": "2020-04-21"
+    },
+    {
+      "name": "Randall Dominguez",
+      "orders": 5,
+      "revenue": 13265.99,
+      "lastOrderDate": "2020-03-12"
+    },
+    {
+      "name": "Adriana Gonzalez",
+      "orders": 5,
+      "revenue": 13242.699999999999,
+      "lastOrderDate": "2020-03-19"
+    },
+    {
+      "name": "Rosa Hu",
+      "orders": 5,
+      "revenue": 13215.649999999998,
+      "lastOrderDate": "2020-04-23"
+    },
+    {
+      "name": "Brandi Gill",
+      "orders": 5,
+      "revenue": 13195.64,
+      "lastOrderDate": "2020-03-09"
+    },
+    {
+      "name": "Brad She",
+      "orders": 5,
+      "revenue": 13173.189999999999,
+      "lastOrderDate": "2020-04-19"
+    },
+    {
+      "name": "Francisco Sara",
+      "orders": 5,
+      "revenue": 13164.639999999998,
+      "lastOrderDate": "2020-03-27"
+    },
+    {
+      "name": "Maurice Shan",
+      "orders": 6,
+      "revenue": 12909.67,
+      "lastOrderDate": "2020-02-15"
+    }
+  ],
+  "rfmSegments": [
+    {
+      "segment": "Champions",
+      "count": 108
+    },
+    {
+      "segment": "Loyal",
+      "count": 2506
+    },
+    {
+      "segment": "At Risk",
+      "count": 4726
+    },
+    {
+      "segment": "New",
+      "count": 1128
+    },
+    {
+      "segment": "Lost",
+      "count": 10016
+    }
+  ],
+  "repeatPurchaseRate": 37.140229387578444,
+  "forecast": [
+    {
+      "month": "2020-07",
+      "revenue": 1216417.1159704074,
+      "profit": 506595.3803769214
+    },
+    {
+      "month": "2020-08",
+      "revenue": 1268991.6217283476,
+      "profit": 528490.8316928336
+    },
+    {
+      "month": "2020-09",
+      "revenue": 1255457.695791917,
+      "profit": 522854.4227112898
+    }
+  ]
+}
