@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AdventureWorks Beheerdersdashboard - Klant 360°</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="app-layout">
+    
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">AW</div>
+        <div class="sidebar-brand">
+          <h2>Adventure</h2>
+          <span>WORKS ANALYTICS</span>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">BEHEER</div>
+        <a href="#" class="nav-item active">
+          <span class="nav-icon">📊</span>
+          Overzicht
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-icon">🎯</span>
+          Klant 360°
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-icon">🧩</span>
+          Segmenten
+        </a>
+        <a href="#" class="nav-item">
+          <span class="nav-icon">📍</span>
+          Regio's
+        </a>
+        
+        <div class="nav-section-title">DATA</div>
+        <a href="#" class="nav-item" id="btn-csv-upload-sidebar">
+          <span class="nav-icon">📥</span>
+          CSV Uploaden
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="status-badge">
+          <span class="status-dot"></span>
+          <div class="status-info">
+            <span class="status-text">Data gereed</span>
+            <span class="status-subtext">121.253 rijen verwerkt</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content">
+      
+      <!-- TOP HEADER BAR -->
+      <header class="main-header">
+        <div class="header-titles">
+          <span class="header-kicker">BEHEERDERSDASHBOARD</span>
+          <h1>Klant 360°</h1>
+          <p>Ken de klant, zie de kans, versnel de groei.</p>
+        </div>
+        
+        <div class="header-actions">
+          <div class="csv-badge">
+            <span class="badge-dot"></span>
+            Adventureworks.Sales.csv
+          </div>
+          <button class="btn-csv-change">Wijzig CSV</button>
+        </div>
+      </header>
+      
+      <!-- FILTERS CARD -->
+      <section class="filters-card">
+        <div class="filter-inputs">
+          <div class="filter-field">
+            <label>STARTDATUM</label>
+            <input type="date" id="filter-start-date" value="2017-07-02" min="2017-07-02" max="2020-06-15">
+          </div>
+          
+          <div class="filter-field">
+            <label>EINDDATUM</label>
+            <input type="date" id="filter-end-date" value="2020-06-15" min="2017-07-02" max="2020-06-15">
+          </div>
+          
+          <div class="filter-field">
+            <label>KANAAL</label>
+            <select id="filter-segment">
+              <option value="all">Alle kanalen</option>
+              <option value="Reseller">Wederverkoper (B2B)</option>
+              <option value="Customer">Individueel (B2C)</option>
+            </select>
+          </div>
+          
+          <div class="filter-field">
+            <label>REGIO</label>
+            <select id="filter-territory">
+              <option value="all">Alle regio's</option>
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+        </div>
+        
+        <button id="btn-reset" class="btn-reset-filters">Filters herstellen</button>
+      </section>
+      
+      <!-- KPI CARDS GRID -->
+      <section class="kpi-grid">
+        <!-- KPI 1: Revenue -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>Totale omzet</span>
+            <span class="kpi-card-icon edit-icon">📝</span>
+          </div>
+          <div class="kpi-card-value" id="kpi-sales">€0,0 Mln</div>
+          <div class="kpi-card-sub" id="kpi-sales-sub">uit 0 bestellingen</div>
+        </div>
+        
+        <!-- KPI 2: Gross Profit -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>Brutowinst</span>
+            <span class="kpi-card-icon wallet-icon">💼</span>
+          </div>
+          <div class="kpi-card-value" id="kpi-profit">€0,0 Mln</div>
+          <div class="kpi-card-sub" id="kpi-profit-sub">€0,0 productkosten</div>
+        </div>
+        
+        <!-- KPI 3: Margin -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>Winstmarge</span>
+            <span class="kpi-card-icon margin-icon">%</span>
+          </div>
+          <div class="kpi-card-value" id="kpi-margin">%0,0</div>
+          <div class="kpi-card-sub" id="kpi-margin-sub">Verbetering mogelijk</div>
+        </div>
+        
+        <!-- KPI 4: Active Customer -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>Actieve klanten</span>
+            <span class="kpi-card-icon user-icon">👥</span>
+          </div>
+          <div class="kpi-card-value" id="kpi-customers">0</div>
+          <div class="kpi-card-sub" id="kpi-customers-sub">0 producten verkocht</div>
+        </div>
+        
+        <!-- KPI 5: Return Rate -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>Herhaalaankopen</span>
+            <span class="kpi-card-icon return-icon">🔄</span>
+          </div>
+          <div class="kpi-card-value" id="kpi-return-rate">%0,0</div>
+          <div class="kpi-card-sub" id="kpi-return-rate-sub">0 klanten teruggekeerd</div>
+        </div>
+        
+        <!-- KPI 6: AOV -->
+        <div class="kpi-card">
+          <div class="kpi-card-header">
+            <span>Gem. bestelwaarde</span>
+            <span class="kpi-card-icon card-icon">💳</span>
+          </div>
+          <div class="kpi-card-value" id="kpi-aov">€0,0 k</div>
+          <div class="kpi-card-sub" id="kpi-aov-sub">0 producten per bestelling</div>
+        </div>
+      </section>
+      
+      <!-- DASHBOARD VISUALS ROW 1 -->
+      <section class="visuals-row-1">
+        <!-- Sales and Profit Trend -->
+        <div class="chart-panel trend-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-kicker">PRESTATIES</span>
+              <h3>Omzet- & winsttrend</h3>
+            </div>
+            <div class="panel-legend">
+              <span class="legend-item"><span class="legend-color blue"></span> Omzet</span>
+              <span class="legend-item"><span class="legend-color orange"></span> Winst</span>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="chart-monthly-trend"></canvas>
+          </div>
+        </div>
+        
+        <!-- Customer Segments -->
+        <div class="chart-panel rfm-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-kicker">RFM</span>
+              <h3>Klantsegmenten</h3>
+            </div>
+            <span class="panel-info-icon">❓</span>
+          </div>
+          <div class="rfm-content">
+            <div class="chart-container-donut">
+              <canvas id="chart-rfm"></canvas>
+              <div class="donut-center-text">
+                <span class="donut-number" id="donut-customer-count">0</span>
+                <span class="donut-label">klanten</span>
+              </div>
+            </div>
+            <div class="rfm-legend" id="rfm-legend-list">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- DASHBOARD VISUALS ROW 2 -->
+      <section class="visuals-row-2">
+        <!-- Territory Sales Progress List -->
+        <div class="chart-panel territory-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-kicker">GEOGRAFISCHE PRESTATIES</span>
+              <h3>Omzet per regio</h3>
+            </div>
+            <span class="panel-top-label" id="territory-top-label">Top regio's</span>
+          </div>
+          <div class="territory-list" id="territory-progress-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+        
+        <!-- Channel Mix Stacked Bar -->
+        <div class="chart-panel channel-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-kicker">KANAALMIX</span>
+              <h3>Individueel & wederverkoper</h3>
+            </div>
+          </div>
+          <div class="channel-mix-container">
+            <div class="channel-mix-title">%<span id="channel-ratio">0,0</span> aandeel leidend kanaal <span class="channel-lead-badge" id="channel-lead-badge">Wederverkoperskanaal leidt</span></div>
+            <div class="channel-progress-bar">
+              <div class="channel-progress b2c" id="channel-progress-b2c" style="width: 0%;"></div>
+              <div class="channel-progress b2b" id="channel-progress-b2b" style="width: 0%;"></div>
+            </div>
+            <div class="channel-values">
+              <div class="channel-val b2c">
+                <span class="dot"></span>
+                <div class="name">Individueel (B2C)</div>
+                <div class="val" id="channel-val-b2c">€0,0 Mln</div>
+                <div class="sub" id="channel-sub-b2c">0 klanten - 0 bestellingen</div>
+              </div>
+              <div class="channel-val b2b">
+                <span class="dot"></span>
+                <div class="name">Wederverkoper (B2B)</div>
+                <div class="val" id="channel-val-b2b">€0,0 Mln</div>
+                <div class="sub" id="channel-sub-b2b">0 wederverkopers - 0 bestellingen</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- DASHBOARD VISUALS ROW 3 -->
+      <section class="visuals-row-3">
+        <!-- Top Customers Table -->
+        <div class="chart-panel table-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-kicker">WAARDELEIDERS</span>
+              <h3>Meest waardevolle wederverkopers</h3>
+            </div>
+            <div class="table-actions">
+              <span class="panel-top-label">Top 8 op basis van omzet</span>
+              <input type="text" id="table-search" class="table-search-input" placeholder="Zoeken op naam...">
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table id="data-table">
+              <thead>
+                <tr>
+                  <th>KLANT</th>
+                  <th>KANAAL</th>
+                  <th style="text-align: center;">BESTELLINGEN</th>
+                  <th>LAATSTE AANKOOP</th>
+                  <th>AI-advies</th>
+                  <th style="text-align: right;">OMZET</th>
+                </tr>
+              </thead>
+              <tbody id="table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Action Center (Growth Opportunities) -->
+        <div class="chart-panel action-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-kicker">ACTIECENTRUM</span>
+              <h3>Groeikansen</h3>
+            </div>
+            <span class="action-pulse-icon">✨</span>
+          </div>
+          <div class="action-list" id="action-list-container">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </section>
+
+      <!-- DASHBOARD VISUALS ROW 4: AI SCENARIO SIMULATOR -->
+      <section class="visuals-row-4">
+        <div class="chart-panel simulator-panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <span class="panel-kicker">STRATEGISCHE PLANNING</span>
+              <h3>AI-scenariosimulator</h3>
+            </div>
+            <span class="action-pulse-icon">⚙️</span>
+          </div>
+          
+          <div class="simulator-layout">
+            <!-- Sliders Section -->
+            <div class="simulator-controls">
+              <div class="slider-field">
+                <div class="slider-labels">
+                  <label for="sim-repeat-rate">Groei herhalingsaankopen</label>
+                  <span class="slider-value" id="val-repeat-rate">0%</span>
+                </div>
+                <input type="range" id="sim-repeat-rate" min="0" max="70" step="1" value="0">
+                <div class="slider-range-labels">
+                  <span>Huidig: <span id="lbl-curr-repeat">0%</span></span>
+                  <span>Max doel: 70%</span>
+                </div>
+              </div>
+
+              <div class="slider-field">
+                <div class="slider-labels">
+                  <label for="sim-churn-recover">Klantbehoud (risicoklanten)</label>
+                  <span class="slider-value" id="val-churn-recover">0%</span>
+                </div>
+                <input type="range" id="sim-churn-recover" min="0" max="50" step="1" value="0">
+                <div class="slider-range-labels">
+                  <span>Min: 0%</span>
+                  <span>Max doel: 50%</span>
+                </div>
+              </div>
+
+              <div class="slider-field">
+                <div class="slider-labels">
+                  <label for="sim-margin-target">Doel brutowinstmarge</label>
+                  <span class="slider-value" id="val-margin-target">0%</span>
+                </div>
+                <input type="range" id="sim-margin-target" min="0" max="25" step="0.5" value="0">
+                <div class="slider-range-labels">
+                  <span>Huidig: <span id="lbl-curr-margin">0%</span></span>
+                  <span>Max doel: 25%</span>
+                </div>
+              </div>
+
+              <div class="slider-field">
+                <div class="slider-labels">
+                  <label for="sim-aov-increase">Stijging gem. bestelwaarde (AOV)</label>
+                  <span class="slider-value" id="val-aov-increase">0%</span>
+                </div>
+                <input type="range" id="sim-aov-increase" min="0" max="30" step="1" value="0">
+                <div class="slider-range-labels">
+                  <span>Min: 0%</span>
+                  <span>Max doel: 30%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Results & AI Commentary Section -->
+            <div class="simulator-results-panel">
+              <div class="sim-metrics-grid">
+                <div class="sim-metric-card">
+                  <span class="sim-metric-label">Impact herhalingsaankopen</span>
+                  <span class="sim-metric-val" id="res-repeat-impact">€0</span>
+                </div>
+                <div class="sim-metric-card">
+                  <span class="sim-metric-label">Impact klantbehoud</span>
+                  <span class="sim-metric-val" id="res-churn-impact">€0</span>
+                </div>
+                <div class="sim-metric-card">
+                  <span class="sim-metric-label">Impact brutomarge</span>
+                  <span class="sim-metric-val" id="res-margin-impact">€0</span>
+                </div>
+                <div class="sim-metric-card">
+                  <span class="sim-metric-label">Impact stijging AOV</span>
+                  <span class="sim-metric-val" id="res-aov-impact">€0</span>
+                </div>
+              </div>
+              
+              <div class="sim-total-card">
+                <div class="sim-total-header">
+                  <span>TOTALE POTENTIËLE GECUMULEERDE IMPACT</span>
+                  <span class="sim-total-subtitle">Gecombineerde financiële bijdrage van de doelen</span>
+                </div>
+                <div class="sim-total-val" id="res-total-impact">€0,00 Mln</div>
+              </div>
+              
+              <div class="sim-ai-commentary">
+                <div class="sim-ai-commentary-header">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="sparkle-icon">✨</span>
+                    <h4>AI-beoordeling van scenario</h4>
+                  </div>
+                  <button class="btn-evaluate-scenario" id="btn-evaluate-scenario">Evalueer scenario</button>
+                </div>
+                <div class="sim-ai-commentary-text" id="sim-ai-text">
+                  Pas de sliders aan en klik op "Evalueer scenario" om een strategische AI-beoordeling te starten.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- GİZLİ CSV DOSYA SEÇİCİ -->
+      <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+
+      <!-- FLOATING CHAT TOGGLE BUTTON -->
+      <button class="floating-chat-toggle" id="btn-chat-toggle" title="AI Assistent">
+        <span class="chat-toggle-icon">✨</span>
+        <span class="chat-toggle-text">AI Assistent</span>
+        <span class="chat-toggle-badge" id="chat-badge">1</span>
+      </button>
+
+      <!-- CHAT BACKDROP OVERLAY -->
+      <div class="chat-backdrop" id="chat-backdrop"></div>
+
+      <!-- CHAT DRAWER PANEL -->
+      <aside class="chat-drawer" id="chat-drawer">
+        <div class="chatgpt-header">
+          <div class="chatgpt-header-title">
+            <div class="chatgpt-status-dot"></div>
+            <h3>AW AI Assistent</h3>
+            <span class="chatgpt-model-badge">Gemini 2.5 Flash</span>
+          </div>
+          <div class="chatgpt-header-actions">
+            <button id="btn-clear-chat" class="btn-clear-chat" title="Wissen">
+              <svg style="width: 12px; height: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Wissen
+            </button>
+            <button id="btn-chat-close" class="btn-chat-close" title="Sluiten">&times;</button>
+          </div>
+        </div>
+        
+        <div class="chatgpt-messages" id="chat-messages">
+          <div class="chatgpt-msg ai">
+            <div class="avatar">AI</div>
+            <div class="msg-wrapper">
+              <div class="msg-content">
+                Hallo! Ik ben de AdventureWorks AI Verkoopanalist. Ik kan je vragen over de dashboardgegevens of verkooptrends beantwoorden en aangepaste analyses voor je maken. Hoe kan ik je vandaag helpen?
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- QUICK SUGGESTIONS -->
+        <div class="chatgpt-quick-questions" id="chat-quick-questions">
+          <button class="quick-question-btn">Waarom daalde de verkoop in de afgelopen 6 maanden?</button>
+          <button class="quick-question-btn">Toon klanten met een hoog risico op klantverloop.</button>
+          <button class="quick-question-btn">In welke regio moet ik een campagne starten?</button>
+          <button class="quick-question-btn">Vergelijk het individuele kanaal met het resellerkanaal.</button>
+          <button class="quick-question-btn">Hoe kan ik het percentage herhalingsaankopen verhogen?</button>
+        </div>
+        
+        <div class="chatgpt-input-container">
+          <div class="chatgpt-input-box">
+            <textarea id="chat-input" placeholder="Vraag het aan de AW AI Assistent..." rows="1"></textarea>
+            <button id="chat-send-btn" class="chatgpt-send-btn" disabled>
+              <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+              </svg>
+            </button>
+          </div>
+          <div class="chatgpt-footer-note">De AI Assistent is gevoelig voor actieve filters. De verkoopgegevens worden direct bijgewerkt wanneer je filters aanpast.</div>
+        </div>
+      </aside>
+      
+    </main>
+    
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
