@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Intro</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #video-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #introVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures the video covers the screen without stretching */
+        }
+
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff; /* White background for light theme */
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        #intro-image {
+            max-width: 90%;
+            max-height: 75vh;
+            object-fit: contain;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-radius: 16px;
+        }
+
+        .btn-dashboard {
+            padding: 15px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-dashboard:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 123, 255, 0.6);
+        }
+
+        .btn-dashboard:active {
+            transform: scale(0.95);
+        }
+        
+        /* Optional: Add a skip button if the user doesn't want to watch the whole intro */
+        #skipBtn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: rgba(255,255,255,0.6);
+            background: none;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            z-index: 5;
+            transition: all 0.3s ease;
+        }
+
+        #skipBtn:hover {
+            color: #fff;
+            border-color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="video-container">
+        <!-- Autoplay is often restricted by browsers unless muted. If you want audio, the user might need to click first, or you can add 'muted' below -->
+        <video id="introVideo" src="assets/intro8.mp4" autoplay playsinline></video>
+        
+        <button id="skipBtn">Skip Intro</button>
+
+        <div id="overlay">
+            <img id="intro-image" src="assets/intro-light.png" alt="Dashboard Presentation">
+            <a href="index.html" class="btn-dashboard">Go to Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const video = document.getElementById('introVideo');
+            const overlay = document.getElementById('overlay');
+            const skipBtn = document.getElementById('skipBtn');
+
+            // Function to show overlay
+            const showOverlay = () => {
+                overlay.style.display = 'flex';
+                // Small delay to allow display:flex to apply before changing opacity for transition
+                setTimeout(() => {
+                    overlay.style.opacity = '1';
+                }, 50);
+                skipBtn.style.display = 'none'; // Hide skip button
+            };
+
+            // When video ends normally
+            video.addEventListener('ended', showOverlay);
+
+            // If user clicks skip
+            skipBtn.addEventListener('click', () => {
+                video.pause();
+                showOverlay();
+            });
+
+            // Fallback for browsers that block autoplay (if video doesn't start)
+            let playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.log("Autoplay blocked. Showing overlay or adding a play button could be handled here.");
+                    // In some browsers, we might want to mute it to allow autoplay
+                    video.muted = true;
+                    video.play().catch(e => {
+                        // If it still fails, just show the overlay
+                        showOverlay();
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>
