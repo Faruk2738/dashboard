@@ -6,7 +6,7 @@ import Link from 'next/link';
 export default function IntroPage() {
   const [ended, setEnded] = useState(false);
   const [visible, setVisible] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const videoRef = useRef(null);
 
   const showOverlay = () => {
@@ -39,11 +39,23 @@ export default function IntroPage() {
       playPromise.catch(error => {
         console.log("Autoplay blocked. Retrying with mute...");
         video.muted = true;
-        video.play().catch(e => {
+        video.play().then(() => {
+          // Ses açmayı dene
+          setTimeout(() => {
+            video.muted = false;
+            setIsMuted(false);
+          }, 500);
+        }).catch(e => {
           console.error("Play failed even with mute. Showing overlay.", e);
           showOverlay();
         });
       });
+    } else {
+      // Ses açılı olsun
+      setTimeout(() => {
+        video.muted = false;
+        setIsMuted(false);
+      }, 500);
     }
   }, []);
 
