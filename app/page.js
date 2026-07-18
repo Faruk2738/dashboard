@@ -62,6 +62,7 @@ export default function IntroPage() {
           onEnded={showOverlay}
           autoPlay
           playsInline
+          controls
         />
       )}
 

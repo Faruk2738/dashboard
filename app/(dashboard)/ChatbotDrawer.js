@@ -112,20 +112,32 @@ export default function ChatbotDrawer() {
     utterance.rate = 0.95; // Slightly slower for much better clarity and fluency
     utterance.pitch = 1.0;
 
-    // Select suitable voice (prioritize Google or Premium/Natural sounding voices)
+    // Select suitable voice - prioritize FEMALE voices
     const voices = window.speechSynthesis.getVoices();
     
     // Filter voices matching selected language
     const langVoices = voices.filter(v => v.lang.startsWith(lang.substring(0, 2)));
     
-    // Look for high-quality premium/natural/google voices
+    // Priority 1: Look for female voices with high-quality names
     let bestVoice = langVoices.find(v => 
-      v.name.includes("Google") || 
-      v.name.includes("Natural") || 
-      v.name.includes("Premium") ||
+      v.name.includes("Female") ||
+      v.name.includes("Woman") ||
+      v.name.includes("Zira") ||
+      v.name.includes("Victoria") ||
       v.name.includes("Samantha") ||
-      v.name.includes("Daniel")
+      v.name.includes("Karen") ||
+      v.name.includes("Siri") ||
+      v.name.includes("Google") && !v.name.includes("Male") ||
+      v.name.includes("Natural") && !v.name.includes("Male")
     );
+    
+    // Priority 2: If no female voice found, try Google/Premium voices (they may be female)
+    if (!bestVoice) {
+      bestVoice = langVoices.find(v => 
+        v.name.includes("Google") || 
+        v.name.includes("Premium")
+      );
+    }
     
     if (!bestVoice && langVoices.length > 0) {
       bestVoice = langVoices[0];
