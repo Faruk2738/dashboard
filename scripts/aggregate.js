@@ -29,6 +29,41 @@ const summary = {
   latestDate: "2000-01-01"
 };
 
+// Power BI-style interactive slices. Each slice contains the same core
+// measures, but for a category, territory, or category+territory selection.
+const interactiveSlices = {};
+function createSlice() {
+  return { revenue: 0, profit: 0, orders: new Set(), customers: new Set(), customerStats: {}, monthlySales: {}, categorySales: {}, territorySales: {}, productSales: {} };
+}
+function addToSlice(key, row, monthKey, revenue, profit, category, territory) {
+  if (!interactiveSlices[key]) interactiveSlices[key] = createSlice();
+  const slice = interactiveSlices[key];
+  slice.revenue += revenue;
+  slice.profit += profit;
+  if (row.Sales_Order) slice.orders.add(row.Sales_Order);
+  if (row.CustomerKey) slice.customers.add(row.CustomerKey);
+  if (row.CustomerKey) {
+    if (!slice.customerStats[row.CustomerKey]) slice.customerStats[row.CustomerKey] = { name: row.Customer || 'Unknown', orders: new Set(), revenue: 0, lastOrderDate: row.OrderDate?.substring(0, 10) || '2000-01-01' };
+    const customer = slice.customerStats[row.CustomerKey];
+    if (row.Sales_Order) customer.orders.add(row.Sales_Order);
+    customer.revenue += revenue;
+    if (row.OrderDate?.substring(0, 10) > customer.lastOrderDate) customer.lastOrderDate = row.OrderDate.substring(0, 10);
+  }
+  if (!slice.monthlySales[monthKey]) slice.monthlySales[monthKey] = { revenue: 0, profit: 0 };
+  slice.monthlySales[monthKey].revenue += revenue;
+  slice.monthlySales[monthKey].profit += profit;
+  if (!slice.categorySales[category]) slice.categorySales[category] = { revenue: 0, profit: 0 };
+  slice.categorySales[category].revenue += revenue;
+  slice.categorySales[category].profit += profit;
+  if (!slice.territorySales[territory]) slice.territorySales[territory] = { revenue: 0, profit: 0 };
+  slice.territorySales[territory].revenue += revenue;
+  slice.territorySales[territory].profit += profit;
+  const product = row.Product || 'Unknown Product';
+  if (!slice.productSales[product]) slice.productSales[product] = { revenue: 0, profit: 0 };
+  slice.productSales[product].revenue += revenue;
+  slice.productSales[product].profit += profit;
+}
+
 for (const row of rawData) {
   // Parsing dates
   const dateStr = row.OrderDate.substring(0, 10);
@@ -40,6 +75,17 @@ for (const row of rawData) {
   const revenue = row.Sales_Amount || 0;
   const cost = row.Total_Product_Cost || 0;
   const profit = revenue - cost;
+  const territory = row.Region || "Unknown";
+  const category = row.Category || "Unknown";
+
+  addToSlice('all', row, monthKey, revenue, profit, category, territory);
+  addToSlice(`category:${category}`, row, monthKey, revenue, profit, category, territory);
+  addToSlice(`territory:${territory}`, row, monthKey, revenue, profit, category, territory);
+  addToSlice(`product:${row.Product || 'Unknown Product'}`, row, monthKey, revenue, profit, category, territory);
+  addToSlice(`category:${category}|territory:${territory}`, row, monthKey, revenue, profit, category, territory);
+  addToSlice(`category:${category}|product:${row.Product || 'Unknown Product'}`, row, monthKey, revenue, profit, category, territory);
+  addToSlice(`territory:${territory}|product:${row.Product || 'Unknown Product'}`, row, monthKey, revenue, profit, category, territory);
+  addToSlice(`category:${category}|territory:${territory}|product:${row.Product || 'Unknown Product'}`, row, monthKey, revenue, profit, category, territory);
   
   summary.totalRevenue += revenue;
   summary.totalProfit += profit;
@@ -55,7 +101,6 @@ for (const row of rawData) {
   summary.monthlySales[monthKey].profit += profit;
   
   // Territory Sales
-  const territory = row.Region || "Unknown";
   if (!summary.territorySales[territory]) {
     summary.territorySales[territory] = { revenue: 0, profit: 0 };
   }
@@ -71,7 +116,6 @@ for (const row of rawData) {
   summary.channelSales[channel].profit += profit;
 
   // Category Sales
-  const category = row.Category || "Unknown";
   if (!summary.categorySales[category]) {
     summary.categorySales[category] = { revenue: 0, profit: 0 };
   }
@@ -122,6 +166,7 @@ const rfmSegments = {
 
 let repeatCustomers = 0;
 const topCustomers = [];
+const customerSegmentByKey = {};
 
 for (const [key, c] of Object.entries(summary.customerStats)) {
   const orderCount = c.orders.size;
@@ -130,11 +175,14 @@ for (const [key, c] of Object.entries(summary.customerStats)) {
   const lastDate = new Date(c.lastOrderDate);
   const diffDays = Math.floor((latestDateObj - lastDate) / (1000 * 60 * 60 * 24));
   
-  if (diffDays <= 30 && orderCount > 3) rfmSegments["Champions"]++;
-  else if (diffDays <= 90 && orderCount > 1) rfmSegments["Loyal"]++;
-  else if (diffDays <= 30 && orderCount === 1) rfmSegments["New"]++;
-  else if (diffDays > 90 && diffDays <= 180) rfmSegments["At Risk"]++;
-  else rfmSegments["Lost"]++;
+  let segment;
+  if (diffDays <= 30 && orderCount > 3) segment = "Champions";
+  else if (diffDays <= 90 && orderCount > 1) segment = "Loyal";
+  else if (diffDays <= 30 && orderCount === 1) segment = "New";
+  else if (diffDays > 90 && diffDays <= 180) segment = "At Risk";
+  else segment = "Lost";
+  rfmSegments[segment]++;
+  customerSegmentByKey[key] = segment;
   
   topCustomers.push({
     name: c.name,
@@ -149,6 +197,17 @@ topCustomers.sort((a, b) => b.revenue - a.revenue);
 finalSummary.topCustomers = topCustomers.slice(0, 10);
 finalSummary.rfmSegments = Object.entries(rfmSegments).map(([segment, count]) => ({ segment, count }));
 finalSummary.repeatPurchaseRate = finalSummary.uniqueCustomers ? (repeatCustomers / finalSummary.uniqueCustomers) * 100 : 0;
+
+// RFM selections need the same complete measures as other filters. Build one
+// exact slice per customer segment after each customer's RFM status is known.
+for (const row of rawData) {
+  const segment = customerSegmentByKey[row.CustomerKey];
+  if (!segment) continue;
+  const dateStr = row.OrderDate.substring(0, 10);
+  const revenue = row.Sales_Amount || 0;
+  const profit = revenue - (row.Total_Product_Cost || 0);
+  addToSlice(`segment:${segment}`, row, dateStr.substring(0, 7), revenue, profit, row.Category || 'Unknown', row.Region || 'Unknown');
+}
 
 // Basic Forecasting (Moving average of last 3 months applied to next 3 months)
 const months = finalSummary.monthlySales;
@@ -173,6 +232,40 @@ if (months.length >= 3) {
   }
   finalSummary.forecast = forecasts;
 }
+
+finalSummary.interactiveSlices = Object.fromEntries(
+  Object.entries(interactiveSlices).map(([key, slice]) => {
+    const rfmCounts = { Champions: 0, Loyal: 0, 'At Risk': 0, New: 0, Lost: 0 };
+    const sliceCustomers = Object.values(slice.customerStats);
+    const topSliceCustomers = sliceCustomers.map((customer) => {
+      const orderCount = customer.orders.size;
+      const recency = Math.floor((latestDateObj - new Date(customer.lastOrderDate)) / (1000 * 60 * 60 * 24));
+      if (recency <= 30 && orderCount > 3) rfmCounts.Champions++;
+      else if (recency <= 90 && orderCount > 1) rfmCounts.Loyal++;
+      else if (recency <= 30 && orderCount === 1) rfmCounts.New++;
+      else if (recency > 90 && recency <= 180) rfmCounts['At Risk']++;
+      else rfmCounts.Lost++;
+      return { name: customer.name, orders: orderCount, revenue: customer.revenue, lastOrderDate: customer.lastOrderDate };
+    }).sort((a, b) => b.revenue - a.revenue);
+    return [key, {
+    totalRevenue: slice.revenue,
+    totalProfit: slice.profit,
+    margin: slice.revenue ? (slice.profit / slice.revenue) * 100 : 0,
+    uniqueOrders: slice.orders.size,
+    uniqueCustomers: slice.customers.size,
+    avgOrderValue: slice.orders.size ? slice.revenue / slice.orders.size : 0,
+    repeatPurchaseRate: slice.customers.size
+      ? (sliceCustomers.filter((customer) => customer.orders.size > 1).length / slice.customers.size) * 100
+      : 0,
+    monthlySales: Object.entries(slice.monthlySales).map(([month, values]) => ({ month, ...values })).sort((a, b) => a.month.localeCompare(b.month)),
+    categorySales: Object.entries(slice.categorySales).map(([category, values]) => ({ category, ...values })).sort((a, b) => b.revenue - a.revenue),
+    territorySales: Object.entries(slice.territorySales).map(([territory, values]) => ({ territory, ...values })).sort((a, b) => b.revenue - a.revenue),
+    topProducts: Object.entries(slice.productSales).map(([name, values]) => ({ name, sales: values.revenue, profit: values.profit })).sort((a, b) => b.sales - a.sales).slice(0, 10),
+    topCustomers: topSliceCustomers.slice(0, 10),
+    rfmSegments: Object.entries(rfmCounts).map(([segment, count]) => ({ segment, count })),
+  }];
+  })
+);
 
 fs.writeFileSync(outputPath, JSON.stringify(finalSummary, null, 2));
 console.log('Successfully wrote aggregated data to:', outputPath);

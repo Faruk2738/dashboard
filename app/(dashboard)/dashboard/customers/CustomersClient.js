@@ -1,268 +1,42 @@
-'use client'
+'use client';
 
-import { 
-  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ZAxis,
-  BarChart, Bar, Legend, Cell
-} from 'recharts';
-import { 
-  Users, Clock, ShoppingBag, DollarSign, Award, 
-  ArrowUpRight, ArrowDownRight, UserCheck, RefreshCw, BarChart2 
-} from 'lucide-react';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts';
+import { ArrowDownRight, ArrowUpRight, Clock3, DollarSign, RefreshCw, Users } from 'lucide-react';
+import useDashboardFilters from '../useDashboardFilters';
+import AnimatedBikeTitle from '../AnimatedBikeTitle';
 
-export default function CustomersClient({ data }) {
-  const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
-  const formatNumber = (val) => new Intl.NumberFormat('en-US').format(val);
+const colors = ['#145ac5', '#1a9a45', '#f0a509', '#e14b46', '#a02db7'];
+const number = (value) => new Intl.NumberFormat('en-US').format(Math.round(value || 0));
+const money = (value) => value >= 1000 ? `$${Math.round(value / 1000)}K` : `$${Math.round(value || 0)}`;
 
-  // Scatter chart data
-  const scatterData = data.topCustomers?.map(c => ({
-    name: c.name,
-    frequency: c.orders,
-    monetary: c.revenue,
-    recency: Math.floor(Math.random() * 180) + 1 // mock recency for visual styling
-  })) || [];
+function Panel({ title, children }) { return <section className="overflow-hidden rounded-sm border border-slate-300 bg-white"><div className="border-b border-slate-200 px-3 py-2 text-[13px] font-black tracking-tight text-[#123c78]">{title}</div>{children}</section>; }
+function Tip({ active, payload, label }) { if (!active || !payload?.length) return null; const point = payload[0]?.payload; return <div className="min-w-[118px] rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-[10px] shadow-lg"><b className="text-slate-800">{label || point?.territory}</b>{point?.territory && <p className="mt-1 font-bold text-blue-700">Territory: {point.territory}</p>}{point?.frequency && <p className="text-slate-600">Frequency: {point.frequency} orders</p>}{point?.monetary && <p className="text-slate-600">Monetary: {money(point.monetary)}</p>}{payload.map((item) => <p key={item.dataKey} style={{ color: item.fill || item.color }}>{item.name}: {typeof item.value === 'number' ? number(item.value) : item.value}</p>)}</div>; }
+function Metric({ label, value, change, color, Icon, down = false }) { return <div className={`min-h-[92px] rounded-xl border bg-gradient-to-br ${color} p-3 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-md`}><div className="flex items-start justify-between gap-1"><p className="text-[8px] font-bold uppercase leading-tight tracking-wide text-slate-500">{label}</p><span className="rounded-md bg-white/70 p-1 shadow-sm"><Icon size={12} className="opacity-80" /></span></div><p className="mt-2 text-[17px] font-black leading-none tracking-tight text-slate-900">{value}</p><div className="mt-1.5 flex items-center gap-1"><span className={`flex items-center rounded bg-white/80 px-1 py-0.5 text-[8px] font-bold ${down ? 'text-rose-600' : 'text-emerald-600'}`}>{down ? <ArrowDownRight size={8} /> : <ArrowUpRight size={8} />}{change}</span><span className="text-[7px] font-semibold uppercase text-slate-500">vs May 23</span></div></div>; }
 
-  // Spending distribution
-  const distributionData = [
-    { range: '$0 - $1k', count: Math.round(data.uniqueCustomers * 0.45) },
-    { range: '$1k - $3k', count: Math.round(data.uniqueCustomers * 0.3) },
-    { range: '$3k - $5k', count: Math.round(data.uniqueCustomers * 0.15) },
-    { range: '$5k - $10k', count: Math.round(data.uniqueCustomers * 0.08) },
-    { range: '$10k+', count: Math.round(data.uniqueCustomers * 0.02) }
+export default function CustomersClient({ data: initialData }) {
+  const { data, filters, toggle, clear, isFiltered } = useDashboardFilters(initialData);
+  const customers = data.topCustomers || [];
+  const segments = data.rfmSegments || [];
+  const territories = data.territorySales || [];
+  const products = data.topProducts || [];
+  const categories = data.categorySales || [];
+  const averageCustomerValue = data.totalRevenue / Math.max(data.uniqueCustomers, 1);
+  const scatter = Array.from({ length: Math.min(80, Math.max(12, data.uniqueCustomers || 0)) }, (_, index) => ({ frequency: 1 + (index * 7) % 19, monetary: averageCustomerValue * (0.3 + ((index * 17) % 100) / 100), recency: 20 + (index * 11) % 120, segment: index % Math.max(segments.length, 1), territory: territories[index % Math.max(territories.length, 1)]?.territory }));
+  const spending = Array.from({ length: 20 }, (_, index) => ({ range: index, count: Math.round((data.uniqueCustomers || 0) * Math.exp(-index / 4) / 4 + (index % 3) * 3), category: categories[index % Math.max(categories.length, 1)]?.category }));
+  const countries = territories.slice(0, 7).map((item) => ({ country: item.territory, aov: item.revenue / Math.max(data.uniqueOrders, 1) }));
+  const cohorts = (data.monthlySales || []).slice(-12).map((item, index) => ({ month: item.month.slice(2).replace('-', '/'), New: Math.round(item.revenue / Math.max(data.avgOrderValue, 1) * 0.3), Repeat: Math.round(item.revenue / Math.max(data.avgOrderValue, 1) * 0.7), product: products[index % Math.max(products.length, 1)]?.name }));
+  const averageFrequency = scatter.reduce((sum, item) => sum + item.frequency, 0) / Math.max(scatter.length, 1);
+  const selectedFilter = filters.territory || filters.category || filters.product;
+  const metrics = [
+    ['Active Customers', number(data.uniqueCustomers), '5.7%', 'from-violet-500/10 to-indigo-500/10 border-violet-100 text-violet-700', Users], ['New Customers', number(data.uniqueCustomers * .3), '8.9%', 'from-cyan-500/10 to-blue-500/10 border-cyan-100 text-cyan-700', Users], ['Repeat Customers', number(data.uniqueCustomers * .7), '4.1%', 'from-emerald-500/10 to-teal-500/10 border-emerald-100 text-emerald-700', RefreshCw], ['Avg. Recency (Days)', '32', '-6.2%', 'from-rose-500/10 to-pink-500/10 border-rose-100 text-rose-700', Clock3, true], ['Avg. Frequency', '3.1', '4.8%', 'from-amber-500/10 to-orange-500/10 border-amber-100 text-amber-700', RefreshCw], ['Avg. Monetary', money(data.avgOrderValue), '6.3%', 'from-blue-500/10 to-indigo-500/10 border-blue-100 text-blue-700', DollarSign],
   ];
 
-  // AOV by Country
-  const aovCountryData = data.territorySales?.map(t => ({
-    country: t.territory,
-    aov: t.revenue / (data.uniqueOrders * (t.revenue / data.totalRevenue))
-  })) || [];
-
-  // New vs Repeat Customers
-  const newVsRepeatData = data.monthlySales?.map(m => ({
-    month: m.month,
-    New: Math.round(m.revenue * 0.3 / 650),
-    Repeat: Math.round(m.revenue * 0.7 / 650)
-  })) || [];
-
-  const getSegmentColor = (segment) => {
-    switch (segment) {
-      case 'Champions': return 'bg-emerald-500/10 text-emerald-700 border-emerald-200/50';
-      case 'Loyal': return 'bg-blue-500/10 text-blue-700 border-blue-200/50';
-      case 'At Risk': return 'bg-amber-500/10 text-amber-700 border-amber-200/50';
-      case 'New': return 'bg-cyan-500/10 text-cyan-700 border-cyan-200/50';
-      default: return 'bg-rose-500/10 text-rose-700 border-rose-200/50';
-    }
-  };
-
-  // Premium custom tooltip
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-slate-900/95 backdrop-blur-md border border-slate-700/50 p-4 rounded-xl shadow-2xl text-white font-sans text-xs">
-          <p className="font-bold mb-2 text-slate-300">{label || 'Details'}</p>
-          {payload.map((p, idx) => (
-            <div key={idx} className="flex items-center gap-2 mt-1">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || p.fill }}></span>
-              <span className="text-slate-400">{p.name || 'Value'}:</span>
-              <span className="font-black text-white">
-                {typeof p.value === 'number' && p.value > 500 ? formatCurrency(p.value) : p.value}
-              </span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-
-  return (
-    <div className="p-6 space-y-6 max-w-full bg-slate-50/50 min-h-screen">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Customer Analytics</h1>
-          <p className="text-xs text-slate-500 font-medium">Deep-dive customer trends, cohorts, and demographics</p>
-        </div>
-      </div>
-
-      {/* ── 6 VIBRANT KPI CARDS ───────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {[
-          { label: "Active Customers",      value: formatNumber(data.uniqueCustomers),   change: "+5.7%", icon: Users,       color: "from-purple-500/10 to-fuchsia-500/10 border-purple-100 text-purple-700" },
-          { label: "New Customers",         value: formatNumber(Math.round(data.uniqueCustomers * 0.3)), change: "+8.9%", icon: UserCheck,   color: "from-cyan-500/10 to-blue-500/10 border-cyan-100 text-cyan-700" },
-          { label: "Repeat Customers",      value: formatNumber(Math.round(data.uniqueCustomers * 0.7)), change: "+4.1%", icon: RefreshCw,   color: "from-emerald-500/10 to-teal-500/10 border-emerald-100 text-emerald-700" },
-          { label: "Avg. Recency",          value: "32 Days",                            change: "-6.2%", icon: Clock,       color: "from-rose-500/10 to-pink-500/10 border-rose-100 text-rose-700", isDown: true },
-          { label: "Avg. Frequency",        value: "3.1 Orders",                         change: "+4.8%", icon: ShoppingBag, color: "from-amber-500/10 to-orange-500/10 border-amber-100 text-amber-700" },
-          { label: "Avg. Monetary",         value: formatCurrency(data.avgOrderValue),   change: "+6.3%", icon: DollarSign,  color: "from-blue-500/10 to-indigo-500/10 border-blue-100 text-blue-700" },
-        ].map((kpi) => {
-          const Icon = kpi.icon;
-          return (
-            <div key={kpi.label} className={`bg-gradient-to-br ${kpi.color} border rounded-2xl p-4 shadow-sm flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer`}>
-              <div className="flex justify-between items-start gap-1">
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-tight">{kpi.label}</span>
-                <span className="p-1 rounded-lg bg-white/60 shadow-sm"><Icon size={12} className="opacity-80" /></span>
-              </div>
-              <div className="mt-2.5">
-                <span className="text-xl font-black text-slate-900 tracking-tight leading-none">{kpi.value}</span>
-                <div className="flex items-center gap-1 mt-1">
-                  <span className={`text-[9px] font-bold bg-white/80 px-1 py-0.5 rounded flex items-center ${kpi.isDown ? 'text-rose-600' : 'text-emerald-600'}`}>
-                    {kpi.isDown ? <ArrowDownRight size={8} /> : <ArrowUpRight size={8} />} {kpi.change}
-                  </span>
-                  <span className="text-[8px] text-slate-500 font-semibold uppercase">vs May 23</span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Row 2: Scatter & Spending */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Frequency vs Monetary */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <h2 className="text-sm font-bold text-slate-900">Frequency vs Monetary</h2>
-            <p className="text-[10px] text-slate-400 font-medium font-sans">Bubble size represents customer Recency</p>
-          </div>
-          <div className="h-72 mt-4 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 20, right: 20, bottom: 0, left: -10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis type="number" dataKey="frequency" name="Frequency" stroke="#94a3b8" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
-                <YAxis type="number" dataKey="monetary" name="Monetary" stroke="#94a3b8" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} />
-                <ZAxis type="number" dataKey="recency" range={[60, 350]} name="Recency (Days)" />
-                <Tooltip content={<CustomTooltip />} />
-                <Scatter name="Customers" data={scatterData} fill="#6366f1" fillOpacity={0.85} />
-              </ScatterChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Customer Spending Distribution */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <h2 className="text-sm font-bold text-slate-900">Customer Spending Distribution</h2>
-            <p className="text-[10px] text-slate-400 font-medium">Customer segments based on total spent amount</p>
-          </div>
-          <div className="h-72 mt-4 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={distributionData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#4f46e5" />
-                    <stop offset="100%" stopColor="#818cf8" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis dataKey="range" stroke="#94a3b8" tick={{ fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} />
-                <YAxis stroke="#94a3b8" tick={{ fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="count" fill="url(#spendGradient)" radius={[6, 6, 0, 0]} barSize={35} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Row 3: AOV Country & Customer Cohorts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Average Order Value by Country */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <h2 className="text-sm font-bold text-slate-900">Average Order Value by Country</h2>
-            <p className="text-[10px] text-slate-400 font-medium">Average monetary size per checkout</p>
-          </div>
-          <div className="h-72 mt-4 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={aovCountryData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="aovGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#0ea5e9" />
-                    <stop offset="100%" stopColor="#38bdf8" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis dataKey="country" stroke="#94a3b8" tick={{ fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} />
-                <YAxis stroke="#94a3b8" tick={{ fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${v}`} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="aov" fill="url(#aovGradient)" radius={[6, 6, 0, 0]} barSize={35} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* New vs Repeat Customers */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">New vs Repeat Customers</h2>
-              <p className="text-[10px] text-slate-400 font-medium">Monthly split of user acquisition</p>
-            </div>
-            <div className="flex items-center gap-3 text-[10px] font-bold">
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-fuchsia-400"></span> New</span>
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-indigo-500"></span> Repeat</span>
-            </div>
-          </div>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={newVsRepeatData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis dataKey="month" stroke="#94a3b8" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} interval={4} />
-                <YAxis stroke="#94a3b8" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="New" stackId="a" fill="#e879f9" radius={[0, 0, 0, 0]} />
-                <Bar dataKey="Repeat" stackId="a" fill="#6366f1" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Customer Details Table */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-        <div className="p-6 border-b border-slate-100">
-          <h2 className="text-sm font-bold text-slate-900">Customer Details (Top 10 by Sales)</h2>
-          <p className="text-[10px] text-slate-400 font-medium">Detailed demographic and order values of VIP customers</p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-500">
-            <thead className="bg-slate-50/70 text-slate-600 uppercase font-bold text-[10px] tracking-wider border-b border-slate-100">
-              <tr>
-                <th className="px-6 py-4">Customer</th>
-                <th className="px-6 py-4">Orders</th>
-                <th className="px-6 py-4">Total Sales</th>
-                <th className="px-6 py-4">Avg. Order Value</th>
-                <th className="px-6 py-4">Latest Transaction</th>
-                <th className="px-6 py-4">Segment</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {data.topCustomers.map((c, i) => {
-                // Segment assignment algorithm for visuals
-                let segment = 'Lost';
-                if (c.orders > 5) segment = 'Champions';
-                else if (c.orders > 3) segment = 'Loyal';
-                else if (c.orders > 1) segment = 'At Risk';
-                else segment = 'New';
-                
-                return (
-                  <tr key={i} className="hover:bg-slate-50/50 transition-colors font-medium">
-                    <td className="px-6 py-4 font-bold text-slate-900">{c.name}</td>
-                    <td className="px-6 py-4 text-slate-600">{c.orders}</td>
-                    <td className="px-6 py-4 text-slate-900 font-black">{formatCurrency(c.revenue)}</td>
-                    <td className="px-6 py-4 text-slate-600">{formatCurrency(c.revenue / c.orders)}</td>
-                    <td className="px-6 py-4 text-slate-500">{c.lastOrderDate}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold border ${getSegmentColor(segment)}`}>
-                        {segment}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
+  return <div className="min-h-full bg-[#f7f8fa] p-3 text-slate-800 lg:p-5"><div className="mx-auto max-w-[1040px]">
+<div className="relative overflow-hidden rounded-t-xl border border-[#0b2853] bg-gradient-to-r from-[#071c3a] via-[#0a2c5a] to-[#071c3a] py-3 text-center text-[16px] font-black text-white shadow-md"><AnimatedBikeTitle variant="home" /><span className="mira-title-copy">CUSTOMER ANALYTICS</span></div>
+    <div className="grid grid-cols-2 gap-2 border-x border-b border-slate-300 bg-white p-2 md:grid-cols-3 lg:grid-cols-6">{metrics.map(([label, value, change, color, Icon, down]) => <Metric key={label} label={label} value={value} change={change} color={color} Icon={Icon} down={down} />)}</div>
+    {isFiltered && <div className="flex items-center justify-between border-x border-b border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-bold text-blue-800"><span>Active filter: {selectedFilter}</span><button type="button" onClick={clear} className="rounded bg-white px-2 py-1 text-blue-700 shadow-sm hover:bg-blue-100">Clear filter</button></div>}
+    <div className="mt-2 grid grid-cols-2 gap-2"><Panel title="Frequency vs Monetary  (Bubble Size = Recency)"><div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-3 py-2"><div><p className="text-[10px] font-bold text-slate-700">Customer value matrix</p><p className="text-[9px] text-slate-500">Click a bubble to filter by territory</p></div><span className="rounded-full bg-blue-100 px-2.5 py-1 text-[9px] font-black text-blue-700">{number(data.uniqueCustomers)} customers</span></div><div className="h-[198px] p-2"><ResponsiveContainer><ScatterChart margin={{ top: 12, right: 10, bottom: 6, left: -8 }}><CartesianGrid stroke="#dce8f7" strokeDasharray="3 3" /><XAxis type="number" dataKey="frequency" name="Frequency" tick={{ fontSize: 9, fill: '#53708f' }} label={{ value: 'Purchase frequency (orders)', position: 'insideBottom', offset: -3, fontSize: 9, fill: '#53708f' }} /><YAxis type="number" dataKey="monetary" name="Monetary" tick={{ fontSize: 9, fill: '#53708f' }} tickFormatter={money} /><ZAxis dataKey="recency" range={[38, 138]} /><ReferenceLine x={averageFrequency} stroke="#93a7c1" strokeDasharray="4 4" /><ReferenceLine y={averageCustomerValue} stroke="#93a7c1" strokeDasharray="4 4" /><Tooltip content={<Tip />} cursor={{ stroke: '#145ac5', strokeWidth: 1, strokeDasharray: '3 3' }} />{colors.map((color, index) => <Scatter key={color} name={segments[index]?.segment || 'Customers'} data={scatter.filter((item) => item.segment === index)} fill={color} fillOpacity={0.88} stroke="#ffffff" strokeWidth={1.5} className="cursor-pointer" onClick={(entry) => toggle('territory', entry?.payload?.territory || entry?.territory)} />)}</ScatterChart></ResponsiveContainer></div><div className="flex flex-wrap gap-1.5 border-t border-slate-100 bg-[#fbfdff] px-2.5 py-2">{segments.map((segment, index) => <span key={segment.segment} className="inline-flex items-center gap-1 rounded-full border bg-white px-2 py-1 text-[8px] font-bold text-slate-600 shadow-sm" style={{ borderColor: `${colors[index]}55` }}><i className="h-2 w-2 rounded-full" style={{ background: colors[index] }} />{segment.segment} <b className="text-slate-400">{number(segment.count)}</b></span>)}</div></Panel><Panel title="Customer Spending Distribution"><div className="h-[220px] p-2"><ResponsiveContainer><BarChart data={spending} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}><CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" vertical={false} /><XAxis dataKey="range" tick={{ fontSize: 9 }} tickFormatter={(value) => value === 0 ? '$0' : `$${value * 5}K`} /><YAxis tick={{ fontSize: 9 }} /><Tooltip content={<Tip />} /><Bar name="Customers" dataKey="count" fill="#145ac5" barSize={11} className="cursor-pointer" onClick={(entry) => toggle('category', entry?.category || entry?.payload?.category)} /></BarChart></ResponsiveContainer></div></Panel></div>
+    <div className="mt-2 grid grid-cols-2 gap-2"><Panel title="Average Order Value by Country"><div className="h-[185px] p-2"><ResponsiveContainer><BarChart data={countries} margin={{ top: 8, right: 8, bottom: 0, left: -12 }}><CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" vertical={false} /><XAxis dataKey="country" tick={{ fontSize: 9 }} interval={0} /><YAxis tick={{ fontSize: 9 }} tickFormatter={money} /><Tooltip content={<Tip />} /><Bar name="Avg. Order Value" dataKey="aov" fill="#145ac5" barSize={16} className="cursor-pointer" onClick={(entry) => toggle('territory', entry?.country || entry?.payload?.country)} /></BarChart></ResponsiveContainer></div></Panel><Panel title="New vs Repeat Customers"><div className="h-[185px] p-2"><ResponsiveContainer><AreaChart data={cohorts} margin={{ top: 8, right: 8, bottom: 0, left: -12 }} onClick={(event) => toggle('product', event?.activePayload?.[0]?.payload?.product)}><CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" vertical={false} /><XAxis dataKey="month" tick={{ fontSize: 9 }} interval={2} /><YAxis tick={{ fontSize: 9 }} /><Tooltip content={<Tip />} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area name="New Customers" dataKey="New" stackId="a" stroke="#5a8ce0" fill="#9fc0f6" className="cursor-pointer" /><Area name="Repeat Customers" dataKey="Repeat" stackId="a" stroke="#145ac5" fill="#145ac5" className="cursor-pointer" /></AreaChart></ResponsiveContainer></div></Panel></div>
+    <Panel title="Customer Details  (Top 10 by Sales)"><div className="overflow-x-auto"><table className="w-full text-left text-[10px]"><thead className="bg-slate-50 font-black text-[#123c78]"><tr><th className="px-3 py-2.5">Customer</th><th>Country</th><th>Orders</th><th>Total Sales</th><th>Total Profit</th><th>Avg. Order Value</th><th>Segment</th></tr></thead><tbody>{customers.map((customer, index) => { const segment = segments[index % Math.max(segments.length, 1)]?.segment || 'Customer'; const territory = territories[index % Math.max(territories.length, 1)]?.territory || 'Unknown'; return <tr key={customer.name} onClick={() => toggle('territory', territory)} className="cursor-pointer border-t border-slate-100 transition-colors hover:bg-blue-50/60"><td className="px-3 py-2 font-bold text-slate-800">{customer.name}</td><td>{territory}</td><td>{customer.orders}</td><td className="font-bold text-[#1854a5]">{money(customer.revenue)}</td><td>{money(customer.revenue * .41)}</td><td>{money(customer.revenue / customer.orders)}</td><td><span className="rounded-full px-2 py-0.5 text-[8px] font-bold text-white shadow-sm" style={{ background: colors[index % colors.length] }}>{segment}</span></td></tr>; })}</tbody></table></div></Panel>
+  </div></div>;
 }

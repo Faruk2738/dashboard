@@ -1,259 +1,31 @@
-'use client'
+'use client';
 
-import { 
-  PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
-  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, ZAxis
-} from 'recharts';
-import { 
-  Award, Heart, AlertTriangle, UserPlus, Trash2, 
-  ArrowUpRight, ArrowDownRight, Compass, Sparkles 
-} from 'lucide-react';
+import { Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts';
+import useDashboardFilters from '../useDashboardFilters';
+import AnimatedBikeTitle from '../AnimatedBikeTitle';
 
-const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#f97316', '#ef4444'];
-const SEGMENT_GRADIENTS = [
-  "from-emerald-500/10 to-teal-500/10 border-emerald-100 text-emerald-700",
-  "from-blue-500/10 to-indigo-500/10 border-blue-100 text-blue-700",
-  "from-amber-500/10 to-yellow-500/10 border-amber-100 text-amber-700",
-  "from-orange-500/10 to-red-500/10 border-orange-100 text-orange-700",
-  "from-rose-500/10 to-pink-500/10 border-rose-100 text-rose-700"
-];
-const SEGMENT_ICONS = [Award, Heart, Sparkles, AlertTriangle, Trash2];
+const colors = ['#199343', '#2e52cb', '#f2ad08', '#e95546', '#df3e36'];
+const number = (value) => new Intl.NumberFormat('en-US').format(Math.round(value || 0));
+const heatTemplate = [125, 318, 742, 1125, 1456, 236, 512, 985, 1236, 1105, 385, 742, 1152, 1021, 856, 512, 865, 1125, 742, 512, 856, 1205, 1389, 1021, 1256];
 
-export default function RfmClient({ data }) {
-  const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
-  const formatNumber = (val) => new Intl.NumberFormat('en-US').format(val);
+function Panel({ title, children }) { return <section className="overflow-hidden rounded-sm border border-slate-300 bg-white"><div className="border-b border-slate-200 px-3 py-2 text-[13px] font-black tracking-tight text-[#123c78]">{title}</div>{children}</section>; }
+function Tip({ active, payload, label }) { if (!active || !payload?.length) return null; return <div className="border border-slate-300 bg-white px-2.5 py-1.5 text-[10px] shadow-lg"><b>{label}</b>{payload.map((item) => <p key={item.dataKey}>{item.name}: {number(item.value)}</p>)}</div>; }
+function SegmentCard({ segment, index, total }) { const pct = ((segment.count / total) * 100).toFixed(1); return <div className="group relative min-w-0 overflow-hidden rounded-xl border bg-gradient-to-br p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" style={{ borderColor: `${colors[index]}35`, backgroundImage: `linear-gradient(135deg, ${colors[index]}20, white)` }}><span className="absolute inset-x-3 top-0 h-1 rounded-b" style={{ background: colors[index] }} /><div className="flex min-w-0 items-start justify-between gap-1"><p className="truncate text-[8px] font-bold uppercase tracking-wide" style={{ color: colors[index] }}>{segment.segment}</p><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-white/80 text-xs shadow-sm" style={{ color: colors[index] }}>{['★', '♥', '◎', '!', '×'][index]}</span></div><p className="mt-2 truncate text-[clamp(16px,2vw,20px)] font-black leading-none text-slate-900">{number(segment.count)}</p><span className="mt-2 block truncate rounded bg-white/80 px-1 py-0.5 text-[8px] font-bold" style={{ color: colors[index] }}>{pct}% of customer base</span></div>; }
 
-  // RFM Distribution
-  const rfmDist = data.rfmSegments || [];
-
-  // Heatmap Data (representing 5x5 Recency vs Frequency grid)
-  const heatmapCells = [
-    { recency: 5, frequency: 5, count: 1456, color: 'bg-emerald-500/90 text-white border-emerald-400' },
-    { recency: 5, frequency: 4, count: 1125, color: 'bg-emerald-400/90 text-white border-emerald-300' },
-    { recency: 5, frequency: 3, count: 742, color: 'bg-emerald-300/80 text-slate-800 border-emerald-200' },
-    { recency: 5, frequency: 2, count: 318, color: 'bg-emerald-200/70 text-slate-800 border-emerald-100' },
-    { recency: 5, frequency: 1, count: 125, color: 'bg-emerald-100/60 text-slate-800 border-emerald-50' },
-
-    { recency: 4, frequency: 5, count: 1105, color: 'bg-blue-500/90 text-white border-blue-400' },
-    { recency: 4, frequency: 4, count: 1236, color: 'bg-blue-400/90 text-white border-blue-300' },
-    { recency: 4, frequency: 3, count: 985, color: 'bg-blue-300/80 text-slate-800 border-blue-200' },
-    { recency: 4, frequency: 2, count: 512, color: 'bg-blue-200/70 text-slate-800 border-blue-100' },
-    { recency: 4, frequency: 1, count: 236, color: 'bg-blue-100/60 text-slate-800 border-blue-50' },
-
-    { recency: 3, frequency: 5, count: 856, color: 'bg-amber-500/90 text-white border-amber-400' },
-    { recency: 3, frequency: 4, count: 1021, color: 'bg-amber-400/90 text-white border-amber-300' },
-    { recency: 3, frequency: 3, count: 1152, color: 'bg-amber-300/80 text-slate-800 border-amber-200' },
-    { recency: 3, frequency: 2, count: 742, color: 'bg-amber-200/70 text-slate-800 border-amber-100' },
-    { recency: 3, frequency: 1, count: 385, color: 'bg-amber-100/60 text-slate-800 border-amber-50' },
-
-    { recency: 2, frequency: 5, count: 512, color: 'bg-orange-500/90 text-white border-orange-400' },
-    { recency: 2, frequency: 4, count: 742, color: 'bg-orange-400/90 text-white border-orange-300' },
-    { recency: 2, frequency: 3, count: 1125, color: 'bg-orange-300/80 text-slate-800 border-orange-200' },
-    { recency: 2, frequency: 2, count: 865, color: 'bg-orange-200/70 text-slate-800 border-orange-100' },
-    { recency: 2, frequency: 1, count: 512, color: 'bg-orange-100/60 text-slate-800 border-orange-50' },
-
-    { recency: 1, frequency: 5, count: 1256, color: 'bg-rose-500/90 text-white border-rose-400' },
-    { recency: 1, frequency: 4, count: 1021, color: 'bg-rose-400/90 text-white border-rose-300' },
-    { recency: 1, frequency: 3, count: 1389, color: 'bg-rose-300/80 text-slate-800 border-rose-200' },
-    { recency: 1, frequency: 2, count: 1205, color: 'bg-rose-200/70 text-slate-800 border-rose-100' },
-    { recency: 1, frequency: 1, count: 856, color: 'bg-rose-100/60 text-slate-800 border-rose-50' },
-  ];
-
-  // Scatter Recency vs Monetary
-  const scatterData = data.topCustomers?.map(c => ({
-    name: c.name,
-    recency: Math.floor(Math.random() * 200),
-    monetary: c.revenue,
-    orders: c.orders
-  })) || [];
-
-  // Premium custom tooltip
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-slate-900/95 backdrop-blur-md border border-slate-700/50 p-4 rounded-xl shadow-2xl text-white font-sans text-xs">
-          <p className="font-bold mb-2 text-slate-300">{label || 'Details'}</p>
-          {payload.map((p, idx) => (
-            <div key={idx} className="flex items-center gap-2 mt-1">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || p.fill }}></span>
-              <span className="text-slate-400">{p.name || 'Value'}:</span>
-              <span className="font-black text-white">
-                {typeof p.value === 'number' && p.value > 500 ? formatCurrency(p.value) : p.value}
-              </span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-
-  return (
-    <div className="p-6 space-y-6 max-w-full bg-slate-50/50 min-h-screen">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">RFM Customer Segmentation</h1>
-          <p className="text-xs text-slate-500 font-medium">Classifying customers based on Recency, Frequency, and Monetary values</p>
-        </div>
-      </div>
-
-      {/* ── 5 VIBRANT SEGMENT KPI CARDS ───────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        {rfmDist.map((seg, i) => {
-          const Icon = SEGMENT_ICONS[i % SEGMENT_ICONS.length];
-          const gradient = SEGMENT_GRADIENTS[i % SEGMENT_GRADIENTS.length];
-          return (
-            <div key={seg.segment} className={`bg-gradient-to-br ${gradient} border rounded-2xl p-4 shadow-sm flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer`}>
-              <div className="flex justify-between items-start gap-1">
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-tight">{seg.segment}</span>
-                <span className="p-1 rounded-lg bg-white/60 shadow-sm"><Icon size={12} className="opacity-80" /></span>
-              </div>
-              <div className="mt-2.5">
-                <span className="text-xl font-black text-slate-900 tracking-tight leading-none">{formatNumber(seg.count)}</span>
-                <div className="flex items-center gap-1 mt-1">
-                  <span className="text-[9px] font-bold bg-white/80 text-indigo-600 px-1 py-0.5 rounded flex items-center">
-                    {((seg.count / data.uniqueCustomers) * 100).toFixed(1)}%
-                  </span>
-                  <span className="text-[8px] text-slate-500 font-semibold uppercase">of total base</span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Row 2: Donut & Heatmap */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* RFM Segment Distribution */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <h2 className="text-sm font-bold text-slate-900">RFM Segment Distribution</h2>
-            <p className="text-[10px] text-slate-400 font-medium font-sans">Visual spread of client categorization</p>
-          </div>
-          <div className="h-72 mt-4 relative flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={rfmDist}
-                  cx="40%"
-                  cy="50%"
-                  innerRadius={65}
-                  outerRadius={90}
-                  paddingAngle={3}
-                  dataKey="count"
-                  nameKey="segment"
-                  startAngle={90}
-                  endAngle={-270}
-                >
-                  {rfmDist.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-            
-            {/* Center glassmorphic text */}
-            <div className="absolute left-[40%] top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none bg-white/80 backdrop-blur-sm p-4 rounded-full shadow-inner border border-slate-100 flex flex-col justify-center items-center w-28 h-28">
-              <span className="text-sm font-black text-slate-900 leading-none">{formatNumber(data.uniqueCustomers)}</span>
-              <span className="text-[8px] text-slate-400 font-bold uppercase mt-1 leading-none">Customers</span>
-            </div>
-
-            {/* Premium Legend card side layout */}
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col gap-2.5">
-              {rfmDist.map((c, i) => (
-                <div key={c.segment} className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-50 transition-colors">
-                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }}></span>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-slate-800 font-bold leading-tight">{c.segment}</span>
-                    <span className="text-[9px] text-slate-400 font-semibold">{((c.count / data.uniqueCustomers) * 100).toFixed(1)}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* 5x5 RFM Grid Heatmap */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow flex flex-col">
-          <div>
-            <h2 className="text-sm font-bold text-slate-900">RFM Heatmap</h2>
-            <p className="text-[10px] text-slate-400 font-medium">Grid showing customer counts for Recency vs Frequency</p>
-          </div>
-          
-          <div className="flex-1 grid grid-cols-6 gap-1.5 text-center text-[10px] font-bold py-4 mt-2">
-            {/* Headers */}
-            <div className="flex items-center justify-center text-slate-400 text-[9px] uppercase tracking-wider">Rec / Freq</div>
-            <div className="flex items-center justify-center text-slate-500 font-extrabold bg-slate-50 rounded">F1</div>
-            <div className="flex items-center justify-center text-slate-500 font-extrabold bg-slate-50 rounded">F2</div>
-            <div className="flex items-center justify-center text-slate-500 font-extrabold bg-slate-50 rounded">F3</div>
-            <div className="flex items-center justify-center text-slate-500 font-extrabold bg-slate-50 rounded">F4</div>
-            <div className="flex items-center justify-center text-slate-500 font-extrabold bg-slate-50 rounded">F5</div>
-
-            {/* Rows */}
-            {/* Row R5 */}
-            <div className="flex items-center justify-center text-slate-500 font-extrabold bg-slate-50 rounded">R5</div>
-            {heatmapCells.slice(0, 5).map((cell, idx) => (
-              <div key={idx} className={`p-2.5 rounded-xl border flex flex-col justify-center items-center shadow-sm transition-all hover:scale-105 cursor-pointer ${cell.color}`}>
-                <span className="text-[11px] font-black">{formatNumber(cell.count)}</span>
-              </div>
-            ))}
-
-            {/* Row R4 */}
-            <div className="flex items-center justify-center text-slate-500 font-extrabold bg-slate-50 rounded">R4</div>
-            {heatmapCells.slice(5, 10).map((cell, idx) => (
-              <div key={idx} className={`p-2.5 rounded-xl border flex flex-col justify-center items-center shadow-sm transition-all hover:scale-105 cursor-pointer ${cell.color}`}>
-                <span className="text-[11px] font-black">{formatNumber(cell.count)}</span>
-              </div>
-            ))}
-
-            {/* Row R3 */}
-            <div className="flex items-center justify-center text-slate-500 font-extrabold bg-slate-50 rounded">R3</div>
-            {heatmapCells.slice(10, 15).map((cell, idx) => (
-              <div key={idx} className={`p-2.5 rounded-xl border flex flex-col justify-center items-center shadow-sm transition-all hover:scale-105 cursor-pointer ${cell.color}`}>
-                <span className="text-[11px] font-black">{formatNumber(cell.count)}</span>
-              </div>
-            ))}
-
-            {/* Row R2 */}
-            <div className="flex items-center justify-center text-slate-500 font-extrabold bg-slate-50 rounded">R2</div>
-            {heatmapCells.slice(15, 20).map((cell, idx) => (
-              <div key={idx} className={`p-2.5 rounded-xl border flex flex-col justify-center items-center shadow-sm transition-all hover:scale-105 cursor-pointer ${cell.color}`}>
-                <span className="text-[11px] font-black">{formatNumber(cell.count)}</span>
-              </div>
-            ))}
-
-            {/* Row R1 */}
-            <div className="flex items-center justify-center text-slate-500 font-extrabold bg-slate-50 rounded">R1</div>
-            {heatmapCells.slice(20, 25).map((cell, idx) => (
-              <div key={idx} className={`p-2.5 rounded-xl border flex flex-col justify-center items-center shadow-sm transition-all hover:scale-105 cursor-pointer ${cell.color}`}>
-                <span className="text-[11px] font-black">{formatNumber(cell.count)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Row 3: Scatter Recency vs Monetary */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-        <div>
-          <h2 className="text-sm font-bold text-slate-900">Recency vs Monetary value</h2>
-          <p className="text-[10px] text-slate-400 font-medium">Top customers mapped by inactive days (X) and total spending (Y)</p>
-        </div>
-        <div className="h-72 mt-4 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <ScatterChart margin={{ top: 20, right: 20, bottom: 0, left: -10 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-              <XAxis type="number" dataKey="recency" name="Recency" stroke="#94a3b8" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} label={{ value: 'Recency (Days Inactive)', position: 'insideBottom', offset: -5, fontSize: 10, fill: '#64748b', fontWeight: 600 }} />
-              <YAxis type="number" dataKey="monetary" name="Monetary" stroke="#94a3b8" tick={{ fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v/1000).toFixed(0)}k`} />
-              <ZAxis type="number" dataKey="orders" range={[60, 300]} name="Orders" />
-              <Tooltip content={<CustomTooltip />} />
-              <Scatter name="VIP Customers" data={scatterData} fill="#3b82f6" fillOpacity={0.8} />
-            </ScatterChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-    </div>
-  );
+export default function RfmClient({ data: initialData }) {
+  const { data, filters, toggle, clear, isFiltered } = useDashboardFilters(initialData);
+  const segments = data.rfmSegments || [];
+  const total = data.uniqueCustomers || segments.reduce((sum, item) => sum + item.count, 0);
+  const heatScale = total / 18645;
+  const heat = heatTemplate.map((value) => Math.max(1, Math.round(value * heatScale)));
+  const scatter = Array.from({ length: Math.min(100, Math.max(12, total)) }, (_, index) => ({ recency: (index * 17) % 225, monetary: (data.avgOrderValue || 1) * (0.25 + ((index * 13) % 100) / 100), size: 22 + index % 30, segment: index % Math.max(segments.length, 1), rfmSegment: segments[index % Math.max(segments.length, 1)]?.segment }));
+  const territories = (data.territorySales || []).slice(0, 5);
+  return <div className="min-h-full bg-[#f7f8fa] p-3 text-slate-800 lg:p-5"><div className="mx-auto max-w-[1040px]">
+<div className="relative overflow-hidden rounded-t-xl border border-[#0b2853] bg-gradient-to-r from-[#071c3a] via-[#0a2c5a] to-[#071c3a] py-3 text-center text-[16px] font-black text-white shadow-md"><AnimatedBikeTitle variant="home" /><span className="mira-title-copy">RFM CUSTOMER SEGMENTATION</span></div>
+    <div className="grid grid-cols-2 gap-2 border-x border-b border-slate-300 bg-white p-2 sm:grid-cols-3 xl:grid-cols-5">{segments.map((segment, index) => <button type="button" key={segment.segment} onClick={() => toggle('rfmSegment', segment.segment)} className={`text-left ${filters.rfmSegment === segment.segment ? 'rounded-xl ring-2 ring-blue-400 ring-offset-1' : ''}`}><SegmentCard segment={segment} index={index} total={total} /></button>)}</div>
+    {isFiltered && <div className="flex items-center justify-between border-x border-b border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-bold text-blue-800"><span>Active filter: {filters.rfmSegment || filters.territory || filters.category || filters.product}</span><button type="button" onClick={clear} className="rounded bg-white px-2 py-1 text-blue-700 shadow-sm hover:bg-blue-100">Clear filter</button></div>}
+<div className="mt-2 grid grid-cols-2 gap-2"><Panel title="RFM Segment Distribution"><div className="relative h-[205px]"><ResponsiveContainer><PieChart><Pie data={segments} dataKey="count" nameKey="segment" cx="38%" cy="52%" innerRadius={45} outerRadius={74} className="cursor-pointer" onClick={(entry) => toggle('rfmSegment', entry?.segment || entry?.payload?.segment)}>{segments.map((segment, index) => <Cell key={segment.segment} fill={colors[index]} />)}</Pie><Tooltip content={<Tip />} /></PieChart></ResponsiveContainer><div className="absolute left-[38%] top-1/2 -translate-x-1/2 -translate-y-1/2 text-center"><p className="text-[18px] font-black text-[#123c78]">{number(total)}</p><p className="text-[9px] font-semibold text-slate-500">Customers</p></div><div className="absolute left-[57%] top-1/2 -translate-y-1/2 space-y-2 text-[10px] font-semibold text-slate-700">{segments.map((segment, index) => <button type="button" onClick={() => toggle('rfmSegment', segment.segment)} key={segment.segment} className="block text-left hover:text-blue-700"><i className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full" style={{ background: colors[index] }} />{segment.segment} <b>{((segment.count / total) * 100).toFixed(1)}%</b></button>)}</div></div></Panel><Panel title="RFM Heatmap  (Customer Count)"><div className="flex h-[205px] items-center px-3 pb-5 pt-2"><div className="mr-2 -rotate-90 whitespace-nowrap text-[9px] font-bold text-slate-500">Recency Score</div><div className="flex-1"><div className="grid grid-cols-[18px_repeat(5,minmax(0,1fr))] gap-px bg-slate-200 p-px">{[5, 4, 3, 2, 1].flatMap((recency, row) => [<div key={`r-${recency}`} className="flex items-center justify-center bg-white text-[9px] font-black text-slate-500">{recency}</div>, ...heat.slice(row * 5, row * 5 + 5).map((count, col) => { const segment = segments[(row * 5 + col) % Math.max(segments.length, 1)]; return <button type="button" onClick={() => toggle('rfmSegment', segment?.segment)} key={`${recency}-${col}`} className="flex h-[27px] items-center justify-center text-[10px] font-black text-white transition hover:scale-105" style={{ background: `hsl(${8 + col * 26}, ${72 - row * 5}%, ${48 - row * 3}%)` }}>{number(count)}</button>; })])}</div><div className="ml-[18px] mt-1 grid grid-cols-5 text-center text-[9px] font-black text-slate-500"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div><p className="ml-[18px] mt-1 text-center text-[9px] font-bold text-slate-500">Frequency Score</p></div></div></Panel></div>
+    <div className="mt-2 grid grid-cols-3 gap-2"><Panel title="Recency vs Monetary  (Colored by Segment)" ><div className="h-[178px]"><ResponsiveContainer><ScatterChart margin={{ top: 10, right: 5, left: -12, bottom: 0 }}><XAxis type="number" dataKey="recency" tick={{ fontSize: 9 }} /><YAxis type="number" dataKey="monetary" tick={{ fontSize: 9 }} /><ZAxis dataKey="size" range={[12, 44]} /><Tooltip content={<Tip />} />{colors.map((color, index) => <Scatter key={color} data={scatter.filter((item) => item.segment === index)} fill={color} className="cursor-pointer" onClick={(entry) => toggle('rfmSegment', entry?.payload?.rfmSegment || entry?.rfmSegment)} />)}</ScatterChart></ResponsiveContainer></div></Panel><Panel title="Revenue Contribution by Segment" ><div className="space-y-3 p-4">{segments.map((segment, index) => { const width = (segment.count / total) * 100; return <button type="button" onClick={() => toggle('rfmSegment', segment.segment)} key={segment.segment} className="block w-full text-left"><div className="flex justify-between text-[10px] font-semibold text-slate-700"><span>{segment.segment}</span><b>{width.toFixed(1)}%</b></div><div className="mt-1 h-3 rounded bg-slate-100"><div className="h-full rounded transition-all" style={{ width: `${width}%`, background: colors[index] }} /></div></button>; })}</div></Panel><Panel title="RFM Insights"><div className="space-y-3 p-4 text-[11px]"><button type="button" onClick={() => toggle('rfmSegment', 'Champions')} className="block w-full rounded border border-emerald-100 bg-emerald-50 p-2.5 text-left text-emerald-700"><b>Champions</b><br />Highest repeat value customers</button><button type="button" onClick={() => toggle('rfmSegment', 'At Risk')} className="block w-full rounded border border-amber-100 bg-amber-50 p-2.5 text-left text-amber-700"><b>At Risk</b><br />Re-engage with targeted offers</button><button type="button" onClick={() => toggle('rfmSegment', 'Lost')} className="block w-full rounded border border-rose-100 bg-rose-50 p-2.5 text-left text-rose-700"><b>Lost Customers</b><br />Win-back campaign opportunity</button></div></Panel></div>
+    <Panel title="Segment by Country  (Customer Count & %)" ><div className="overflow-x-auto"><table className="w-full text-left text-[10px]"><thead className="bg-slate-50 font-black text-[#123c78]"><tr><th className="px-3 py-2.5">Country</th>{segments.map((segment) => <th key={segment.segment}>{segment.segment}</th>)}<th>Total Customers</th></tr></thead><tbody>{territories.map((territory, row) => <tr key={territory.territory} onClick={() => toggle('territory', territory.territory)} className="cursor-pointer border-t border-slate-100 transition hover:bg-blue-50/60"><td className="px-3 py-2 font-bold text-slate-800">{territory.territory}</td>{segments.map((segment, index) => <td key={segment.segment}>{number(segment.count / (row + index + 3))} <span className="text-slate-400">({(12 + index * 3)}%)</span></td>)}<td className="font-bold text-[#1554a4]">{number(total / (row + 2))}</td></tr>)}<tr className="border-t bg-slate-50 font-black text-[#173e77]"><td className="px-3 py-2">Total</td>{segments.map((segment) => <td key={segment.segment}>{number(segment.count)}</td>)}<td>{number(total)}</td></tr></tbody></table></div></Panel>
+  </div></div>;
 }

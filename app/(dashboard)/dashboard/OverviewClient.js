@@ -1,280 +1,98 @@
-'use client'
+'use client';
 
-import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
-  PieChart, Pie, Cell,
-  BarChart, Bar
-} from 'recharts';
+import { useState } from 'react';
+
+import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import dynamic from 'next/dynamic';
-import { 
-  DollarSign, TrendingUp, Users, ShoppingBag, 
-  Percent, Star, ArrowUpRight, ArrowDownRight, Award 
-} from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Award, Clock3, DollarSign, Percent, RefreshCw, ShoppingBag, TrendingUp, Users } from 'lucide-react';
+import AnimatedBikeTitle from './AnimatedBikeTitle';
 
-const WorldMap = dynamic(() => import('./WorldMap'), { ssr: false, loading: () => <div className="h-full flex items-center justify-center text-slate-400 text-sm">Loading map…</div> });
+const WorldMap = dynamic(() => import('./WorldMap'), { ssr: false, loading: () => <div className="h-full bg-[#dcecff]" /> });
+const colors = ['#0754c8', '#169344', '#f0ac0a', '#e95b4e'];
+const money = (value) => value >= 1e6 ? `$${(value / 1e6).toFixed(2)}M` : `$${Math.round((value || 0) / 1e3)}K`;
+const number = (value) => new Intl.NumberFormat('en-US').format(Math.round(value || 0));
 
-const DONUT_COLORS = ['#6366f1', '#10b981', '#f59e0b', '#3b82f6', '#ec4899'];
+function ChartTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return <div className="border border-slate-300 bg-white px-2.5 py-1.5 text-[10px] shadow-lg"><b>{label}</b>{payload.map((item) => <p key={item.dataKey} style={{ color: item.color || item.fill }}>{item.name}: {money(item.value)}</p>)}</div>;
+}
 
-export default function OverviewClient({ data }) {
-  const formatCurrency = (val) => {
-    if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`;
-    if (val >= 1000) return `$${(val / 1000).toFixed(0)}K`;
-    return `$${val.toFixed(0)}`;
-  };
-  const formatFull = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
-  const formatNumber = (val) => new Intl.NumberFormat('en-US').format(val);
+function KpiCard({ label, value, change, Icon, color, down = false }) {
+  return <div className={`bg-gradient-to-br ${color} min-h-[92px] border rounded-xl p-3 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:scale-[1.02] hover:shadow-md`}>
+    <div className="flex items-start justify-between gap-1"><span className="text-[8px] font-bold uppercase leading-tight tracking-wide text-slate-500">{label}</span><span className="rounded-md bg-white/70 p-1 shadow-sm"><Icon size={12} className="opacity-80" /></span></div>
+    <p className="mt-2 text-[17px] font-black leading-none tracking-tight text-slate-900">{value}</p>
+    <div className="mt-1.5 flex items-center gap-1"><span className={`flex items-center rounded bg-white/80 px-1 py-0.5 text-[8px] font-bold ${down ? 'text-rose-600' : 'text-emerald-600'}`}>{down ? <ArrowDownRight size={8} /> : <ArrowUpRight size={8} />}{change}</span><span className="text-[7px] font-semibold uppercase text-slate-500">vs May 23</span></div>
+  </div>;
+}
 
-  const trendData = data.monthlySales || [];
-  const forecastData = data.forecast || [];
+function Panel({ title, children, className = '' }) {
+  return <section className={`overflow-hidden rounded-sm border border-slate-300 bg-white ${className}`}><div className="border-b border-slate-200 px-3 py-2 text-[13px] font-black tracking-tight text-[#123c78]">{title}</div>{children}</section>;
+}
 
-  // Combine actual + forecast for chart
-  const combinedTrend = [
-    ...trendData.map(m => ({ month: m.month, actual: m.revenue, forecast: null })),
-    ...forecastData.map(f => ({ month: f.month, actual: null, forecast: f.revenue }))
+export default function OverviewClient({ data: initialData }) {
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedTerritory, setSelectedTerritory] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const toggleCategory = (category) => setSelectedCategory((current) => current === category ? null : category);
+  const toggleTerritory = (territory) => setSelectedTerritory((current) => current === territory ? null : territory);
+  const toggleProduct = (product) => setSelectedProduct((current) => current === product ? null : product);
+  const clearFilters = () => { setSelectedCategory(null); setSelectedTerritory(null); setSelectedProduct(null); };
+  const sliceKey = [
+    selectedCategory && `category:${selectedCategory}`,
+    selectedTerritory && `territory:${selectedTerritory}`,
+    selectedProduct && `product:${selectedProduct}`,
+  ].filter(Boolean).join('|') || 'all';
+  const slice = initialData.interactiveSlices?.[sliceKey];
+  const data = { ...initialData, ...(slice || {}) };
+  const monthly = data.monthlySales || [];
+  const filteredForecast = selectedCategory || selectedTerritory || selectedProduct
+    ? (() => {
+      const recent = monthly.slice(-3);
+      const revenue = recent.length ? recent.reduce((total, row) => total + row.revenue, 0) / recent.length : 0;
+      const start = new Date(`${monthly.at(-1)?.month || '2024-01'}-01T00:00:00Z`);
+      return [1, 2, 3].map((offset) => {
+        const date = new Date(start);
+        date.setUTCMonth(date.getUTCMonth() + offset);
+        return { month: date.toISOString().slice(0, 7), revenue };
+      });
+    })()
+    : (data.forecast || []);
+  const forecast = filteredForecast;
+  const trend = [
+    ...monthly.map((row) => ({ month: row.month.slice(2).replace('-', '/'), actual: row.revenue, forecast: null })),
+    ...forecast.map((row) => ({ month: row.month.slice(2).replace('-', '/'), actual: null, forecast: row.revenue })),
+  ];
+  const categories = (data.categorySales || []).map((row) => ({ name: row.category, value: row.revenue }));
+  const products = data.topProducts || [];
+  const nextForecast = forecast[0]?.revenue || 2710000;
+  const kpis = [
+    { label: 'Total Sales', value: money(data.totalRevenue), change: '12.4%', Icon: DollarSign, color: 'from-blue-500/10 to-indigo-500/10 border-blue-100 text-blue-700' },
+    { label: 'Gross Profit', value: money(data.totalProfit), change: '8.7%', Icon: TrendingUp, color: 'from-emerald-500/10 to-teal-500/10 border-emerald-100 text-emerald-700' },
+    { label: 'Total Customers', value: number(data.uniqueCustomers), change: '6.1%', Icon: Users, color: 'from-purple-500/10 to-fuchsia-500/10 border-purple-100 text-purple-700' },
+    { label: 'Total Orders', value: number(data.uniqueOrders), change: '9.3%', Icon: ShoppingBag, color: 'from-amber-500/10 to-orange-500/10 border-amber-100 text-amber-700' },
+    { label: 'Avg. Order Value', value: money(data.avgOrderValue), change: '2.8%', Icon: Percent, color: 'from-rose-500/10 to-pink-500/10 border-rose-100 text-rose-700' },
+    { label: 'Repeat Customer', value: `${Number(data.repeatPurchaseRate || 0).toFixed(1)}%`, change: '3.2%', Icon: RefreshCw, color: 'from-cyan-500/10 to-blue-500/10 border-cyan-100 text-cyan-700' },
+    { label: 'Active Customers', value: number(data.uniqueCustomers), change: '5.7%', Icon: Users, color: 'from-violet-500/10 to-indigo-500/10 border-violet-100 text-violet-700' },
+    { label: 'Forecast Next Month', value: money(nextForecast), change: '9.8%', Icon: Award, color: 'from-sky-500/10 to-blue-500/10 border-sky-100 text-sky-700' },
   ];
 
-  const categoryData = (data.categorySales || []).map((c, i) => ({
-    name: c.category,
-    value: c.revenue
-  }));
+  return <div className="min-h-full bg-[#f7f8fa] p-3 text-slate-800 lg:p-5">
+    <div className="mx-auto max-w-[1040px]">
+<div className="relative overflow-hidden rounded-t-xl border border-[#0b2853] bg-gradient-to-r from-[#071c3a] via-[#0a2c5a] to-[#071c3a] py-3 text-center text-[16px] font-black text-white shadow-md"><AnimatedBikeTitle variant="home" /><span className="mira-title-copy">HOME — EXECUTIVE OVERVIEW</span></div>
+      <div className="grid grid-cols-2 gap-2 border-x border-b border-slate-300 bg-white p-2 md:grid-cols-4 lg:grid-cols-8">{kpis.map((kpi) => <KpiCard key={kpi.label} {...kpi} />)}</div>
+      {(selectedCategory || selectedTerritory || selectedProduct) && <div className="flex items-center justify-between border-x border-b border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-bold text-blue-800"><span>Active filter: {[selectedCategory, selectedTerritory, selectedProduct].filter(Boolean).join(' • ')}</span><button type="button" onClick={clearFilters} className="rounded bg-white px-2 py-1 text-blue-700 shadow-sm hover:bg-blue-100">Clear filter</button></div>}
 
-  const totalForPct = categoryData.reduce((s, c) => s + c.value, 0);
-
-  // Top 10 products
-  const topProducts = [
-    { name: "Road-250 Red, 52", sales: 1320000 },
-    { name: "Mountain-200 Black, 46", sales: 1140000 },
-    { name: "Road-250 Black, 52", sales: 1100000 },
-    { name: "Mountain-200 Silver, 46", sales: 890000 },
-    { name: "Touring-1000 Blue, 60", sales: 830000 },
-    { name: "Road-150 Red, 48", sales: 730000 },
-    { name: "Mountain-100 Silver, 38", sales: 580000 },
-    { name: "Road-150 Silver, 48", sales: 500000 },
-    { name: "Road-150 Black, 48", sales: 380000 },
-    { name: "Touring-3000 Blue, 62", sales: 340000 },
-  ].reverse();
-
-  // Custom tooltips for premium feel
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-slate-900/95 backdrop-blur-md border border-slate-700/50 p-4 rounded-xl shadow-2xl text-white font-sans text-xs">
-          <p className="font-bold mb-2 text-slate-300">{label}</p>
-          {payload.map((p, idx) => (
-            <div key={idx} className="flex items-center gap-2 mt-1">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color || p.fill }}></span>
-              <span className="text-slate-400">{p.name}:</span>
-              <span className="font-black text-white">{formatFull(p.value)}</span>
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-
-  return (
-    <div className="p-6 space-y-6 max-w-full bg-slate-50/50 min-h-screen">
-      {/* Page Title & Breadcrumb */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Executive Overview</h1>
-          <p className="text-xs text-slate-500 font-medium">Enterprise performance indicators and growth trajectory</p>
-        </div>
-        <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm text-[11px] font-bold text-slate-600">
-          <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-          System Online
-        </div>
+      <div className="mt-2 grid grid-cols-5 gap-2">
+        <Panel title="Sales Trend (Actual vs Forecast)" className="col-span-3"><div className="h-[188px] p-1.5"><ResponsiveContainer width="100%" height="100%"><LineChart data={trend} margin={{ top: 10, right: 8, bottom: 0, left: -12 }}><CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" vertical={false} /><XAxis dataKey="month" tick={{ fontSize: 10 }} interval={6} /><YAxis tick={{ fontSize: 10 }} tickFormatter={(value) => `$${Math.round(value / 1e6)}M`} /><Tooltip content={<ChartTooltip />} /><Line name="Actual Sales" dataKey="actual" stroke="#084cff" strokeWidth={2} dot={false} connectNulls /><Line name="Forecast" dataKey="forecast" stroke="#084cff" strokeWidth={1.7} strokeDasharray="4 3" dot={false} connectNulls /></LineChart></ResponsiveContainer></div></Panel>
+        <Panel title="Sales by Category" className="col-span-2"><div className="relative h-[188px]"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={categories} dataKey="value" cx="40%" cy="52%" innerRadius={44} outerRadius={72} paddingAngle={1} onClick={(item) => toggleCategory(item.name)}>{categories.map((item, index) => <Cell key={item.name} fill={colors[index]} className="cursor-pointer" />)}</Pie><Tooltip content={<ChartTooltip />} /></PieChart></ResponsiveContainer><div className="pointer-events-none absolute left-[40%] top-1/2 -translate-x-1/2 -translate-y-1/2 text-center"><p className="text-[15px] font-black text-[#082d61]">{money(data.totalRevenue)}</p><p className="text-[9px] font-semibold text-slate-500">Total Sales</p></div><div className="absolute left-[64%] top-1/2 -translate-y-1/2 space-y-2.5 text-[10px] font-semibold text-slate-700">{categories.map((item, index) => <button onClick={() => toggleCategory(item.name)} key={item.name} className="block text-left whitespace-nowrap hover:font-black"><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full" style={{ background: colors[index] }} />{item.name}</button>)}</div></div></Panel>
       </div>
 
-      {/* ── 8 VIBRANT KPI CARDS ───────────────────────────── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-        {[
-          { label: "Total Sales",           value: formatCurrency(data.totalRevenue),    change: "+12.4%", icon: DollarSign,   color: "from-blue-500/10 to-indigo-500/10 border-blue-100 text-blue-700" },
-          { label: "Gross Profit",          value: formatCurrency(data.totalProfit),     change: "+8.7%",  icon: TrendingUp,   color: "from-emerald-500/10 to-teal-500/10 border-emerald-100 text-emerald-700" },
-          { label: "Total Customers",       value: formatNumber(data.uniqueCustomers),   change: "+6.1%",  icon: Users,        color: "from-purple-500/10 to-fuchsia-500/10 border-purple-100 text-purple-700" },
-          { label: "Total Orders",          value: formatNumber(data.uniqueOrders),      change: "+9.3%",  icon: ShoppingBag,  color: "from-amber-500/10 to-orange-500/10 border-amber-100 text-amber-700" },
-          { label: "Avg. Order Value",      value: formatFull(data.avgOrderValue),       change: "+3.2%",  icon: Percent,      color: "from-rose-500/10 to-pink-500/10 border-rose-100 text-rose-700" },
-          { label: "Repeat Customer Rate",  value: `${data.repeatPurchaseRate.toFixed(1)}%`, change: "+3.2%", icon: Star,         color: "from-cyan-500/10 to-blue-500/10 border-cyan-100 text-cyan-700" },
-          { label: "Active Customers",      value: formatNumber(data.uniqueCustomers),   change: "+5.7%",  icon: Users,        color: "from-violet-500/10 to-indigo-500/10 border-violet-100 text-violet-700" },
-          { label: "Forecast Next Month",   value: formatCurrency(data.forecast?.[0]?.revenue || 2710000), change: "+9.8%", icon: Award, color: "from-sky-500/10 to-blue-500/10 border-sky-100 text-sky-700" },
-        ].map((kpi) => {
-          const Icon = kpi.icon;
-          return (
-            <div key={kpi.label} className={`bg-gradient-to-br ${kpi.color} border rounded-2xl p-4 shadow-sm flex flex-col justify-between hover:scale-[1.02] transition-all duration-200 cursor-pointer`}>
-              <div className="flex justify-between items-start gap-1">
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider leading-tight">{kpi.label}</span>
-                <span className="p-1 rounded-lg bg-white/60 shadow-sm"><Icon size={12} className="opacity-80" /></span>
-              </div>
-              <div className="mt-2.5">
-                <span className="text-xl font-black text-slate-900 tracking-tight leading-none">{kpi.value}</span>
-                <div className="flex items-center gap-1 mt-1">
-                  <span className="text-[9px] font-bold bg-white/80 text-emerald-600 px-1 py-0.5 rounded flex items-center">
-                    <ArrowUpRight size={8} /> {kpi.change}
-                  </span>
-                  <span className="text-[8px] text-slate-500 font-semibold uppercase">vs May 23</span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      <div className="mt-2 grid grid-cols-5 gap-2">
+        <Panel title="Sales by Country" className="col-span-3"><div className="h-[275px] overflow-hidden bg-[#e1eefc]"><WorldMap territories={data.territorySales} onMarketSelect={toggleTerritory} /></div></Panel>
+        <Panel title="Top 10 Products by Sales" className="col-span-2"><div className="h-[275px] p-1"><ResponsiveContainer width="100%" height="100%"><BarChart data={products} layout="vertical" margin={{ top: 4, right: 12, bottom: 0, left: 18 }}><XAxis type="number" tick={{ fontSize: 9 }} tickFormatter={(value) => money(value)} /><YAxis type="category" dataKey="name" width={103} tick={{ fontSize: 9 }} /><Tooltip content={<ChartTooltip />} /><Bar name="Sales" dataKey="sales" barSize={10} className="cursor-pointer" onClick={(entry) => toggleProduct(entry.name)}>{products.map((product) => <Cell key={product.name} fill={selectedProduct && selectedProduct !== product.name ? '#b9d1f3' : '#0754c8'} />)}</Bar></BarChart></ResponsiveContainer></div></Panel>
       </div>
 
-      {/* ── ROW 2: Sales Trend + Donut ───────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Sales Trend Area Chart */}
-        <div className="lg:col-span-3 bg-white rounded-3xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">Sales Trend & Projection</h2>
-              <p className="text-[10px] text-slate-400 font-medium">Historical sales vs projected model</p>
-            </div>
-            <div className="flex items-center gap-4 text-xs">
-              <span className="flex items-center gap-1.5 text-slate-600 font-semibold">
-                <span className="w-2.5 h-2.5 rounded-full bg-indigo-600"></span> Actual
-              </span>
-              <span className="flex items-center gap-1.5 text-slate-600 font-semibold">
-                <span className="w-2.5 h-2.5 rounded-full bg-sky-300"></span> Forecast
-              </span>
-            </div>
-          </div>
-          <div className="h-60">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={combinedTrend} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-                <defs>
-                  <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0.0}/>
-                  </linearGradient>
-                  <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#7dd3fc" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#7dd3fc" stopOpacity={0.0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                <XAxis dataKey="month" stroke="#94a3b8" tick={{ fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} interval={4} />
-                <YAxis stroke="#94a3b8" tick={{ fontSize: 10, fontWeight: 500 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v/1000000).toFixed(1)}M`} />
-                <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="actual" stroke="#4f46e5" strokeWidth={3} fillOpacity={1} fill="url(#colorActual)" name="Actual Sales" dot={false} connectNulls />
-                <Area type="monotone" dataKey="forecast" stroke="#0ea5e9" strokeWidth={2.5} strokeDasharray="5 5" fillOpacity={1} fill="url(#colorForecast)" name="Forecast" dot={false} connectNulls />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Sales by Category Donut */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <h2 className="text-sm font-bold text-slate-900">Sales by Category</h2>
-            <p className="text-[10px] text-slate-400 font-medium">Revenue contribution by segment</p>
-          </div>
-          <div className="h-60 relative flex items-center justify-center mt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="40%"
-                  cy="50%"
-                  innerRadius={65}
-                  outerRadius={90}
-                  paddingAngle={3}
-                  dataKey="value"
-                  startAngle={90}
-                  endAngle={-270}
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={DONUT_COLORS[index % DONUT_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-            
-            {/* Center glassmorphic text */}
-            <div className="absolute left-[40%] top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none bg-white/80 backdrop-blur-sm p-4 rounded-full shadow-inner border border-slate-100 flex flex-col justify-center items-center w-28 h-28">
-              <span className="text-sm font-black text-slate-900 leading-none">{formatCurrency(data.totalRevenue)}</span>
-              <span className="text-[8px] text-slate-400 font-bold uppercase mt-1 leading-none">Sales Base</span>
-            </div>
-
-            {/* Premium Legend card side layout */}
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col gap-2.5">
-              {categoryData.map((c, i) => (
-                <div key={c.name} className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-50 transition-colors">
-                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: DONUT_COLORS[i % DONUT_COLORS.length] }}></span>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] text-slate-800 font-bold leading-tight">{c.name}</span>
-                    <span className="text-[9px] text-slate-400 font-semibold">{((c.value / totalForPct) * 100).toFixed(1)}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── ROW 3: Map + Top 10 Products ─────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* World Map */}
-        <div className="lg:col-span-3 bg-white rounded-3xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
-          <div>
-            <h2 className="text-sm font-bold text-slate-900">Geographic Sales Map</h2>
-            <p className="text-[10px] text-slate-400 font-medium">Global density of customer transactions</p>
-          </div>
-          <div className="h-64 mt-4 w-full">
-            <WorldMap />
-          </div>
-        </div>
-
-        {/* Top 10 Products Horizontal Bar */}
-        <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-100 p-6 shadow-sm hover:shadow-md transition-shadow">
-          <div>
-            <h2 className="text-sm font-bold text-slate-900">Top 10 Products by Sales</h2>
-            <p className="text-[10px] text-slate-400 font-medium">Highest grossing catalog items</p>
-          </div>
-          <div className="h-64 mt-4 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topProducts} layout="vertical" margin={{ top: 0, right: 20, left: 10, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="barGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#4f46e5" />
-                    <stop offset="100%" stopColor="#818cf8" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                <XAxis type="number" stroke="#94a3b8" tick={{ fontSize: 9, fontWeight: 500 }} axisLine={false} tickLine={false} tickFormatter={(v) => `$${(v/1000000).toFixed(1)}M`} />
-                <YAxis dataKey="name" type="category" stroke="#64748b" tick={{ fontSize: 9, fontWeight: 600 }} axisLine={false} tickLine={false} width={130} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="sales" fill="url(#barGradient)" radius={[0, 6, 6, 0]} barSize={12} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* ── KEY INSIGHTS FOOTER ────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          { label: "Sales growth momentum", desc: "Enterprise Sales up by 12.4% YoY", value: "12.4%", isUp: true, color: "from-emerald-500/10 to-teal-500/5 text-emerald-600 border-emerald-100" },
-          { label: "Operating cost impact", desc: "Kâr marjı son dönem maliyetleri nedeniyle -3.2% azaldı", value: "-3.2%", isUp: false, color: "from-rose-500/10 to-orange-500/5 text-rose-600 border-rose-100" },
-          { label: "Repeat customer loyalty", desc: "Sadık müşteri kitlesi ciro tabanını güçlendiriyor", value: "61.3%", isUp: true, color: "from-indigo-500/10 to-purple-500/5 text-indigo-600 border-indigo-100" },
-          { label: "Dynamic next-month forecast", desc: "Tahmin motoru büyümenin devam edeceğini öngörüyor", value: "$2.71M", isUp: true, color: "from-amber-500/10 to-yellow-500/5 text-amber-600 border-amber-100" }
-        ].map((insight, idx) => (
-          <div key={idx} className={`bg-gradient-to-br ${insight.color} border rounded-2xl p-4 shadow-sm flex items-center gap-4 hover:scale-[1.01] transition-transform`}>
-            <div className="p-3 bg-white rounded-xl shadow-sm">
-              {insight.isUp ? (
-                <ArrowUpRight size={20} className={insight.isUp ? 'text-emerald-500' : 'text-rose-500'} />
-              ) : (
-                <ArrowDownRight size={20} className="text-rose-500" />
-              )}
-            </div>
-            <div>
-              <p className="text-[10px] text-slate-400 font-bold uppercase leading-none">{insight.label}</p>
-              <p className="text-2xl font-black tracking-tight mt-1">{insight.value}</p>
-              <p className="text-[10px] text-slate-500 mt-0.5 leading-tight font-medium">{insight.desc}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      <Panel title="Key Insights" className="mt-2"><div className="grid grid-cols-2 gap-2 p-2.5 lg:grid-cols-4"><div className="flex items-center gap-2.5 rounded border border-slate-200 bg-slate-50 p-2.5"><TrendingUp className="text-emerald-600" size={25} /><div><p className="text-[10px] font-semibold text-slate-600">Sales increased by</p><p className="text-xl font-black text-emerald-600">12.4%</p><p className="text-[9px] text-slate-500">compared to last year.</p></div></div><div className="flex items-center gap-2.5 rounded border border-slate-200 bg-slate-50 p-2.5"><ArrowDownRight className="text-rose-500" size={25} /><div><p className="text-[10px] font-semibold text-slate-600">Profit decreased by</p><p className="text-xl font-black text-rose-500">3.2%</p><p className="text-[9px] text-slate-500">compared to last year.</p></div></div><div className="flex items-center gap-2.5 rounded border border-slate-200 bg-slate-50 p-2.5"><TrendingUp className="text-emerald-600" size={25} /><div><p className="text-[10px] font-semibold text-slate-600">Repeat customer rate</p><p className="text-xl font-black text-emerald-600">{Number(data.repeatPurchaseRate || 0).toFixed(1)}%</p><p className="text-[9px] text-slate-500">shows strong loyalty.</p></div></div><div className="flex items-center gap-2.5 rounded border border-slate-200 bg-slate-50 p-2.5"><Clock3 className="text-[#1458af]" size={25} /><div><p className="text-[10px] font-semibold text-slate-600">Forecast for next month</p><p className="text-xl font-black text-[#1458af]">{money(nextForecast)}</p><p className="text-[9px] text-slate-500">expected sales.</p></div></div></div></Panel>
     </div>
-  );
+  </div>;
 }

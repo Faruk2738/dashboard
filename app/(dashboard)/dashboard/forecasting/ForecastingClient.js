@@ -1,198 +1,61 @@
-'use client'
+'use client';
 
-import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
-  BarChart, Bar, ScatterChart, Scatter, Cell
-} from 'recharts';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, Line, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from 'recharts';
+import { BadgeCheck, BarChart3, CalendarDays, CircleDollarSign, Sparkles, Target, TrendingUp } from 'lucide-react';
+import useDashboardFilters from '../useDashboardFilters';
+import AnimatedBikeTitle from '../AnimatedBikeTitle';
 
-export default function ForecastingClient({ data }) {
-  const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(val);
-  const formatNumber = (val) => new Intl.NumberFormat('en-US').format(val);
+const money = (value) => value >= 1e6 ? `$${(value / 1e6).toFixed(2)}M` : `$${Math.round((value || 0) / 1000)}K`;
+const number = (value) => new Intl.NumberFormat('en-US').format(Math.round(value || 0));
+const palette = ['#1c61c9', '#159447', '#f2aa0b', '#e95546', '#7d3ec5'];
 
-  // actual vs forecast data
-  const actualVsForecastData = [
-    ...data.monthlySales.slice(-6).map(m => ({ month: m.month, actual: m.revenue, forecast: m.revenue * 0.98 })),
-    ...data.forecast.map(f => ({ month: f.month, actual: null, forecast: f.revenue }))
+function Panel({ title, children, className = '' }) { return <section className={`overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg ${className}`}><div className="flex items-center gap-2 border-b border-slate-100 bg-gradient-to-r from-[#e4f1ff] via-[#f8fbff] to-white px-3.5 py-2.5 text-[13px] font-black tracking-tight text-[#163f78]"><span className="h-2 w-2 rounded-full bg-[#2166c7]" />{title}</div>{children}</section>; }
+function Tip({ active, payload, label }) { if (!active || !payload?.length) return null; return <div className="rounded border border-slate-300 bg-white px-2.5 py-1.5 text-[10px] shadow-lg"><b>{label}</b>{payload.map((item) => <p key={item.dataKey} style={{ color: item.color || item.fill }}>{item.name}: {typeof item.value === 'number' ? money(item.value) : item.value}</p>)}</div>; }
+function MetricCard({ label, value, note, Icon, color }) { return <div className="group relative min-w-0 overflow-hidden rounded-xl border bg-gradient-to-br p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md" style={{ borderColor: `${color}35`, backgroundImage: `linear-gradient(135deg, ${color}20, white)` }}><span className="absolute inset-x-3 top-0 h-1 rounded-b" style={{ background: color }} /><div className="flex items-start justify-between gap-2"><p className="text-[9px] font-bold uppercase tracking-wide text-slate-600">{label}</p><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/80 shadow-sm" style={{ color }}><Icon size={15} strokeWidth={2.4} /></span></div><p className="mt-2 truncate text-[clamp(17px,2vw,22px)] font-black leading-none text-slate-900">{value}</p><p className="mt-2 inline-flex rounded bg-white/80 px-1.5 py-0.5 text-[9px] font-bold text-emerald-600">▲ {note}</p></div>; }
+
+const lagData = [{ tMinus1: 1800000, t: 1950000 }, { tMinus1: 2100000, t: 2200000 }, { tMinus1: 2300000, t: 2500000 }, { tMinus1: 2500000, t: 2400000 }, { tMinus1: 2400000, t: 2300000 }, { tMinus1: 3100000, t: 3400000 }];
+const seasonalityData = [{ month: 'Jan', sales: 1600000 }, { month: 'Feb', sales: 1700000 }, { month: 'Mar', sales: 2000000 }, { month: 'Apr', sales: 2100000 }, { month: 'May', sales: 2300000 }, { month: 'Jun', sales: 2200000 }, { month: 'Jul', sales: 2500000 }, { month: 'Aug', sales: 2400000 }, { month: 'Sep', sales: 2300000 }, { month: 'Oct', sales: 3100000 }, { month: 'Nov', sales: 3100000 }, { month: 'Dec', sales: 3400000 }];
+const quarterlyData = [{ quarter: 'Q1', sales: 5400000 }, { quarter: 'Q2', sales: 6600000 }, { quarter: 'Q3', sales: 6800000 }, { quarter: 'Q4', sales: 6100000 }];
+
+export default function ForecastingClient({ data: initialData }) {
+  const { data, filters, toggle, clear, isFiltered } = useDashboardFilters(initialData);
+  const categories = data.categorySales || [];
+  const products = data.topProducts || [];
+  const monthlySales = data.monthlySales || [];
+  const recentActual = monthlySales.slice(-6);
+  const recentAverage = recentActual.reduce((sum, month) => sum + month.revenue, 0) / Math.max(recentActual.length, 1);
+  const forecasts = isFiltered
+    ? ['Jul 2024', 'Aug 2024', 'Sep 2024'].map((month, index) => ({ month, revenue: recentAverage * (1 + index * 0.025) }))
+    : (data.forecast || []);
+  const actualVsForecastData = [...recentActual.map((month, index) => ({ month: month.month, actual: month.revenue, forecast: month.revenue * 0.98, category: categories[index % Math.max(categories.length, 1)]?.category })), ...forecasts.map((month, index) => ({ month: month.month, actual: null, forecast: month.revenue, category: categories[index % Math.max(categories.length, 1)]?.category }))];
+  const nextMonth = forecasts[0]?.revenue || recentAverage;
+  const lagData = monthlySales.slice(1).map((month, index) => ({ tMinus1: monthlySales[index].revenue, t: month.revenue, category: categories[index % Math.max(categories.length, 1)]?.category }));
+  const seasonalityData = monthlySales.slice(-12).map((month, index) => ({ month: month.month.split(' ')[0], sales: month.revenue, category: categories[index % Math.max(categories.length, 1)]?.category }));
+  const quarterlyData = monthlySales.reduce((quarters, month) => {
+    const monthIndex = new Date(`${month.month} 1`).getMonth();
+    const quarter = `Q${Math.floor(monthIndex / 3) + 1}`;
+    const item = quarters.find((entry) => entry.quarter === quarter);
+    if (item) item.sales += month.revenue; else quarters.push({ quarter, sales: month.revenue, product: products[quarters.length % Math.max(products.length, 1)]?.name });
+    return quarters;
+  }, []);
+  const bestCategory = (data.categorySales || [])[0] || { category: 'Bikes', revenue: 0 };
+  const highestGrowth = monthlySales.reduce((best, month, index) => index === 0 ? best : (month.revenue - monthlySales[index - 1].revenue > best.change ? { month: month.month, change: month.revenue - monthlySales[index - 1].revenue, category: categories[index % Math.max(categories.length, 1)]?.category } : best), { month: monthlySales[0]?.month || '—', change: 0, category: categories[0]?.category });
+  const metrics = [
+    { label: 'Forecast Next Month', value: money(nextMonth), note: '9.8% vs Jun 23', Icon: CircleDollarSign, color: palette[0], filter: ['category', categories[0]?.category] },
+    { label: 'Forecast Accuracy', value: '8.7%', note: 'Good MAPE fit', Icon: Target, color: palette[1], filter: ['category', categories[1]?.category || categories[0]?.category] },
+    { label: 'Forecast Next Quarter', value: money(forecasts.slice(0, 3).reduce((sum, month) => sum + month.revenue, 0)), note: 'Next 3 months', Icon: TrendingUp, color: palette[4], filter: ['product', products[0]?.name] },
+{ label: 'YoY Growth (Mtd)', value: monthlySales.length > 1 ? `${(((monthlySales.at(-1)?.revenue / monthlySales[0].revenue) - 1) * 100).toFixed(1)}%` : '—', note: 'Filtered trend', Icon: BarChart3, color: palette[2], filter: ['product', products[1]?.name || products[0]?.name] },
+    { label: 'Best Category', value: bestCategory.category, note: `${data.totalRevenue ? ((bestCategory.revenue / data.totalRevenue) * 100).toFixed(1) : 0}% of sales`, Icon: BadgeCheck, color: palette[3], filter: ['category', bestCategory.category] },
   ];
+  return <div className="min-h-full bg-[#f7f8fa] p-3 text-slate-800 lg:p-5"><div className="mx-auto max-w-[1040px]">
+<header className="relative overflow-hidden rounded-t-xl border border-[#0b2853] bg-gradient-to-r from-[#071c3a] via-[#0a2c5a] to-[#071c3a] py-3 text-center shadow-md"><AnimatedBikeTitle variant="home" /><h1 className="mira-title-copy text-[16px] font-black text-white">SALES FORECAST &amp; INSIGHTS</h1></header>
+    <div className="grid grid-cols-2 gap-2 border-x border-b border-slate-300 bg-white p-2 sm:grid-cols-3 xl:grid-cols-5">{metrics.map((metric) => <button key={metric.label} type="button" className="text-left" onClick={() => toggle(metric.filter?.[0], metric.filter?.[1])}><MetricCard {...metric} /></button>)}</div>
+    {isFiltered && <div className="flex items-center justify-between border-x border-b border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-bold text-blue-800"><span>Active filter: {filters.category || filters.product || filters.territory}</span><button type="button" onClick={clear} className="rounded bg-white px-2 py-1 text-blue-700 shadow-sm hover:bg-blue-100">Clear filter</button></div>}
 
-  // Lag analysis
-  const lagData = [
-    { tMinus1: 1800000, t: 1950000 },
-    { tMinus1: 2100000, t: 2200000 },
-    { tMinus1: 2300000, t: 2500000 },
-    { tMinus1: 2500000, t: 2400000 },
-    { tMinus1: 2400000, t: 2300000 },
-    { tMinus1: 3100000, t: 3400000 }
-  ];
+<div className="mt-2 grid grid-cols-2 gap-2"><Panel title="Actual vs Forecast  (Monthly)"><div className="flex items-center justify-between px-3 pt-2"><div className="flex gap-3 text-[10px] font-bold"><span className="flex items-center gap-1 text-[#1c61c9]"><i className="h-2 w-2 rounded-full bg-[#1c61c9]" />Actual sales</span><span className="flex items-center gap-1 text-[#159447]"><i className="h-2 w-2 rounded-full border-2 border-[#159447] bg-white" />Forecast</span></div><p className="rounded bg-blue-50 px-2 py-1 text-[10px] font-black text-[#1c61c9]">Next: {money(nextMonth)}</p></div><div className="h-[228px] p-2"><ResponsiveContainer width="100%" height="100%"><AreaChart data={actualVsForecastData} margin={{ top: 8, right: 10, left: -12, bottom: 0 }} onClick={(event) => toggle('category', event?.activePayload?.[0]?.payload?.category)}><defs><linearGradient id="forecastFill" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor={palette[0]} stopOpacity=".25" /><stop offset="95%" stopColor={palette[0]} stopOpacity="0" /></linearGradient></defs><CartesianGrid stroke="#e8eef5" strokeDasharray="3 3" vertical={false} /><XAxis dataKey="month" tick={{ fontSize: 9 }} /><YAxis tick={{ fontSize: 9 }} tickFormatter={money} /><Tooltip content={<Tip />} /><Area type="monotone" dataKey="actual" name="Actual Sales" stroke={palette[0]} strokeWidth={2.8} fill="url(#forecastFill)" connectNulls /><Line type="monotone" dataKey="forecast" name="Forecast" stroke={palette[1]} strokeDasharray="6 4" strokeWidth={2.5} dot={{ r: 2.5, fill: '#fff', stroke: palette[1], strokeWidth: 2 }} connectNulls /></AreaChart></ResponsiveContainer></div></Panel><Panel title="Lag Analysis  (Sales_t vs Sales_t-1)"><div className="h-[270px] p-2"><ResponsiveContainer width="100%" height="100%"><ScatterChart margin={{ top: 8, right: 8, left: -13, bottom: 0 }}><CartesianGrid stroke="#edf1f6" strokeDasharray="3 3" /><XAxis type="number" dataKey="tMinus1" name="Sales (t-1)" tick={{ fontSize: 9 }} tickFormatter={money} /><YAxis type="number" dataKey="t" name="Sales (t)" tick={{ fontSize: 9 }} tickFormatter={money} /><Tooltip content={<Tip />} /><Legend wrapperStyle={{ fontSize: 10 }} /><Scatter name="R² = 0.74" data={lagData} fill={palette[4]} className="cursor-pointer" onClick={(entry) => toggle('category', entry?.payload?.category || entry?.category)} /></ScatterChart></ResponsiveContainer></div></Panel></div>
 
-  // Seasonality
-  const seasonalityData = [
-    { month: 'Jan', sales: 1600000 },
-    { month: 'Feb', sales: 1700000 },
-    { month: 'Mar', sales: 2000000 },
-    { month: 'Apr', sales: 2100000 },
-    { month: 'May', sales: 2300000 },
-    { month: 'Jun', sales: 2200000 },
-    { month: 'Jul', sales: 2500000 },
-    { month: 'Aug', sales: 2400000 },
-    { month: 'Sep', sales: 2300000 },
-    { month: 'Oct', sales: 3100000 },
-    { month: 'Nov', sales: 3100000 },
-    { month: 'Dec', sales: 3400000 }
-  ];
+<div className="mt-2 grid grid-cols-2 gap-2"><Panel title="Seasonality: Average Sales by Month"><div className="h-[245px] p-2"><ResponsiveContainer width="100%" height="100%"><BarChart data={seasonalityData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}><CartesianGrid stroke="#edf1f6" strokeDasharray="3 3" vertical={false} /><XAxis dataKey="month" tick={{ fontSize: 9 }} /><YAxis tick={{ fontSize: 9 }} tickFormatter={money} /><Tooltip content={<Tip />} /><Bar dataKey="sales" name="Sales" radius={[5, 5, 0, 0]} className="cursor-pointer" onClick={(entry) => toggle('category', entry?.category || entry?.payload?.category)}>{seasonalityData.map((month, index) => <Cell key={month.month} fill={index > 8 ? palette[1] : palette[0]} />)}</Bar></BarChart></ResponsiveContainer></div></Panel><Panel title="Sales by Quarter"><div className="h-[245px] p-2"><ResponsiveContainer width="100%" height="100%"><BarChart data={quarterlyData} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}><CartesianGrid stroke="#edf1f6" strokeDasharray="3 3" vertical={false} /><XAxis dataKey="quarter" tick={{ fontSize: 10 }} /><YAxis tick={{ fontSize: 9 }} tickFormatter={money} /><Tooltip content={<Tip />} /><Bar dataKey="sales" name="Sales" radius={[6, 6, 0, 0]} className="cursor-pointer" onClick={(entry) => toggle('product', entry?.product || entry?.payload?.product)}>{quarterlyData.map((quarter, index) => <Cell key={quarter.quarter} fill={palette[index]} />)}</Bar></BarChart></ResponsiveContainer></div></Panel></div>
 
-  // Sales by Quarter
-  const quarterlyData = [
-    { quarter: 'Q1', sales: 5400000 },
-    { quarter: 'Q2', sales: 6600000 },
-    { quarter: 'Q3', sales: 6800000 },
-    { quarter: 'Q4', sales: 6100000 }
-  ];
-
-  return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <header className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Sales Forecast & Insights</h1>
-          <p className="text-gray-500 mt-1">Predictive sales trend modeling and seasonality mapping</p>
-        </div>
-      </header>
-
-      {/* 5 KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col justify-between">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Forecast Next Month</span>
-          <h4 className="text-2xl font-black mt-2 text-gray-900">{formatCurrency(data.forecast?.[0]?.revenue || 2710000)}</h4>
-          <span className="text-[10px] text-emerald-500 font-semibold mt-1">▲ +9.8% vs Jun 2023 (A)</span>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col justify-between">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Forecast Accuracy (MAPE)</span>
-          <h4 className="text-2xl font-black mt-2 text-gray-900">8.7%</h4>
-          <span className="text-[10px] text-emerald-500 font-semibold mt-1">Good Fit</span>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col justify-between">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Forecast Next Quarter</span>
-          <h4 className="text-2xl font-black mt-2 text-gray-900">{formatCurrency(8320000)}</h4>
-          <span className="text-[10px] text-emerald-500 font-semibold mt-1">▲ +10.2% vs Q2 2023 (A)</span>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col justify-between">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">YoY Growth (Mtd)</span>
-          <h4 className="text-2xl font-black mt-2 text-gray-900">12.4%</h4>
-          <span className="text-[10px] text-emerald-500 font-semibold mt-1">Growth</span>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col justify-between">
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Best Category</span>
-          <h4 className="text-2xl font-black mt-2 text-gray-900">Bikes</h4>
-          <span className="text-[10px] text-gray-400">56.1% of sales</span>
-        </div>
-      </div>
-
-      {/* Row 2: Actual vs Forecast & Lag Analysis */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col">
-          <h2 className="text-lg font-bold text-gray-900 mb-4 font-sans">Actual vs Forecast (Monthly)</h2>
-          <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={actualVsForecastData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="month" stroke="#94a3b8" />
-                <YAxis tickFormatter={(v) => `$${v/1000000}M`} stroke="#94a3b8" />
-                <Tooltip formatter={(value) => formatCurrency(value)} />
-                <Legend />
-                <Line type="monotone" dataKey="actual" name="Actual Sales" stroke="#3b82f6" strokeWidth={3} connectNulls />
-                <Line type="monotone" dataKey="forecast" name="Forecast" stroke="#60a5fa" strokeDasharray="5 5" strokeWidth={2} connectNulls />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col">
-          <h2 className="text-lg font-bold text-gray-900 mb-4 font-sans font-medium">Lag Analysis (Sales_t vs Sales_t-1)</h2>
-          <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis type="number" dataKey="tMinus1" name="Sales (t-1)" tickFormatter={(v) => `$${v/1000000}M`} />
-                <YAxis type="number" dataKey="t" name="Sales (t)" tickFormatter={(v) => `$${v/1000000}M`} />
-                <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                <Legend />
-                <Scatter name="R² = 0.74" data={lagData} fill="#4f46e5" />
-              </ScatterChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Row 3: Seasonality & Quarter Sales */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Seasonality: Average Sales by Month</h2>
-          <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={seasonalityData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="month" stroke="#94a3b8" />
-                <YAxis tickFormatter={(v) => `$${v/1000000}M`} stroke="#94a3b8" />
-                <Tooltip formatter={(value) => formatCurrency(value)} />
-                <Bar dataKey="sales" fill="#14b8a6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col">
-          <h2 className="text-lg font-bold text-gray-900 mb-4 font-sans">Sales by Quarter</h2>
-          <div className="h-80 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={quarterlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="quarter" stroke="#94a3b8" />
-                <YAxis tickFormatter={(v) => `$${v/1000000}M`} stroke="#94a3b8" />
-                <Tooltip formatter={(value) => formatCurrency(value)} />
-                <Bar dataKey="sales" fill="#3b82f6" radius={[4, 4, 0, 0]}>
-                  {quarterlyData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#4f46e5' : '#14b8a6'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      {/* Key Insights Footer */}
-      <footer className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><span>✅</span> Key Insights</h3>
-          <ul className="space-y-3 text-xs text-gray-600 font-medium">
-            <li className="flex items-start gap-2"><span>•</span> Sales show strong seasonality with a major peak in Q4 (Dec/Nov).</li>
-            <li className="flex items-start gap-2"><span>•</span> Lag analysis indicates a robust auto-regressive trend with R² = 0.74.</li>
-            <li className="flex items-start gap-2"><span>•</span> Forecast model accuracy sits perfectly within standard margins (MAPE: 8.7%).</li>
-            <li className="flex items-start gap-2"><span>•</span> Expect strong momentum in next month's sales, modeled at $2.71M.</li>
-          </ul>
-        </div>
-
-        <div className="bg-emerald-50/50 p-6 rounded-2xl border border-emerald-100/80 flex flex-col justify-between">
-          <div>
-            <span className="text-[10px] font-extrabold uppercase text-emerald-600 tracking-wider">Highest Growth Month</span>
-            <h3 className="text-3xl font-black text-emerald-950 mt-2">December</h3>
-          </div>
-          <span className="text-sm font-semibold text-emerald-600 mt-4">▲ +18.6% vs Dec 2023</span>
-        </div>
-
-        <div className="bg-rose-50/50 p-6 rounded-2xl border border-rose-100/80 flex flex-col justify-between">
-          <div>
-            <span className="text-[10px] font-extrabold uppercase text-rose-600 tracking-wider">Lowest Growth Month</span>
-            <h3 className="text-3xl font-black text-rose-950 mt-2">February</h3>
-          </div>
-          <span className="text-sm font-semibold text-rose-600 mt-4">▼ -5.3% vs Feb 2023</span>
-        </div>
-      </footer>
-    </div>
-  );
+<div className="mt-2 grid grid-cols-3 gap-2"><Panel title="Forecast Insights"><div className="space-y-2 p-3 text-[11px]"><button type="button" onClick={() => toggle('category', categories[0]?.category)} className="block w-full rounded-lg border border-emerald-100 bg-emerald-50 p-2.5 text-left text-emerald-800"><b className="block text-[12px]">Strong seasonality</b>Q4 shows the strongest sales momentum.</button><button type="button" onClick={() => toggle('category', categories[1]?.category || categories[0]?.category)} className="block w-full rounded-lg border border-blue-100 bg-blue-50 p-2.5 text-left text-blue-800"><b className="block text-[12px]">Reliable signal</b>Lag analysis shows a robust R² of 0.74.</button><button type="button" onClick={() => toggle('product', products[0]?.name)} className="block w-full rounded-lg border border-violet-100 bg-violet-50 p-2.5 text-left text-violet-800"><b className="block text-[12px]">Healthy forecast</b>MAPE remains within standard accuracy margins.</button></div></Panel><Panel title="Highest Growth Month"><button type="button" onClick={() => toggle('category', highestGrowth.category)} className="flex h-[174px] w-full flex-col justify-between bg-gradient-to-br from-emerald-50 to-white p-4 text-left"><CalendarDays size={27} className="text-emerald-600" /><div><p className="text-[26px] font-black text-emerald-950">{highestGrowth.month}</p><p className="mt-1 text-[12px] font-black text-emerald-600">▲ 18.6% vs Dec 2023</p></div></button></Panel><Panel title="Forecast Recommendation"><button type="button" onClick={() => toggle('category', bestCategory.category)} className="flex h-[174px] w-full flex-col justify-between bg-gradient-to-br from-amber-50 to-white p-4 text-left"><Sparkles size={27} className="text-amber-600" /><div><p className="text-[15px] font-black text-amber-950">Protect Q4 inventory</p><p className="mt-1 text-[11px] font-semibold text-amber-700">Prioritize {bestCategory.category} and high-demand products.</p></div></button></Panel></div>
+  </div></div>;
 }

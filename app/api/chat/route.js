@@ -4,7 +4,8 @@ import path from 'path';
 
 export async function POST(request) {
   try {
-    const { prompt } = await request.json();
+    const { prompt, language = 'en-US' } = await request.json();
+    const isTurkish = language.toLowerCase().startsWith('tr');
     
     // Read environment keys
     const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -46,7 +47,8 @@ Avg Order Value: $${(contextData.avgOrderValue || 0).toLocaleString()}
 Top 3 Categories: ${contextData.categorySales?.slice(0,3).map(c => c.category).join(', ')}
 Top 3 Regions: ${contextData.territorySales?.slice(0,3).map(t => t.territory).join(', ')}
 
-Please provide concise, professional, and data-driven answers.`;
+Please provide concise, professional, and data-driven answers.
+Reply entirely in ${isTurkish ? 'Turkish (Turkey)' : 'American English (United States)'}, matching the user interface language. For English, use U.S. spelling, vocabulary, and phrasing; do not use British English. Use natural, speakable sentences and avoid Markdown tables.`;
 
     // ── TRY GROQ FIRST ───────────────────────────────────
     if (groqKeyToUse) {
@@ -121,13 +123,22 @@ Please provide concise, professional, and data-driven answers.`;
 
     // ── FINAL LOCAL DUMMY RESPONSE (IF ALL OFFLINE) ─────
     console.warn("Using offline rule-based response fallback.");
-    let fallbackText = "Hello! I am currently operating in offline mode. ";
-    if (prompt.toLowerCase().includes("revenue") || prompt.toLowerCase().includes("sales")) {
-      fallbackText += `Our total revenue is $${(contextData.totalRevenue || 0).toLocaleString()} with a gross profit of $${(contextData.totalProfit || 0).toLocaleString()} (Margin: ${contextData.margin ? contextData.margin.toFixed(1) : 0}%).`;
-    } else if (prompt.toLowerCase().includes("customer")) {
-      fallbackText += `We currently have ${(contextData.uniqueCustomers || 0).toLocaleString()} active customers, with an average order value of $${(contextData.avgOrderValue || 0).toLocaleString()}.`;
+    let fallbackText = isTurkish
+      ? "Merhaba! Şu anda çevrimdışı modda çalışıyorum. "
+      : "Hello! I am currently operating in offline mode. ";
+    const normalizedPrompt = prompt.toLocaleLowerCase(isTurkish ? 'tr-TR' : 'en-US');
+    if (normalizedPrompt.includes("revenue") || normalizedPrompt.includes("sales") || normalizedPrompt.includes("ciro") || normalizedPrompt.includes("satış")) {
+      fallbackText += isTurkish
+        ? `Toplam ciromuz $${(contextData.totalRevenue || 0).toLocaleString()} ve brüt kârımız $${(contextData.totalProfit || 0).toLocaleString()}. Kâr marjı yüzde ${contextData.margin ? contextData.margin.toFixed(1) : 0}.`
+        : `Our total revenue is $${(contextData.totalRevenue || 0).toLocaleString()} with a gross profit of $${(contextData.totalProfit || 0).toLocaleString()} (Margin: ${contextData.margin ? contextData.margin.toFixed(1) : 0}%).`;
+    } else if (normalizedPrompt.includes("customer") || normalizedPrompt.includes("müşteri")) {
+      fallbackText += isTurkish
+        ? `Şu anda ${(contextData.uniqueCustomers || 0).toLocaleString()} aktif müşterimiz var. Ortalama sipariş değeri $${(contextData.avgOrderValue || 0).toLocaleString()}.`
+        : `We currently have ${(contextData.uniqueCustomers || 0).toLocaleString()} active customers, with an average order value of $${(contextData.avgOrderValue || 0).toLocaleString()}.`;
     } else {
-      fallbackText += `AdventureWorks top categories are ${contextData.categorySales?.slice(0,3).map(c => c.category).join(', ')}, and top regions are ${contextData.territorySales?.slice(0,3).map(t => t.territory).join(', ')}. How can I assist you further?`;
+      fallbackText += isTurkish
+        ? `AdventureWorks'te en yüksek performanslı kategoriler ${contextData.categorySales?.slice(0,3).map(c => c.category).join(', ')}. En güçlü bölgeler ise ${contextData.territorySales?.slice(0,3).map(t => t.territory).join(', ')}. Size nasıl yardımcı olabilirim?`
+        : `AdventureWorks top categories are ${contextData.categorySales?.slice(0,3).map(c => c.category).join(', ')}, and top regions are ${contextData.territorySales?.slice(0,3).map(t => t.territory).join(', ')}. How can I assist you further?`;
     }
 
     return NextResponse.json({

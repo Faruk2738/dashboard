@@ -1,1 +1,283 @@
 @import "tailwindcss";
+
+@keyframes mira-bike-ride {
+  0%, 12% { transform: translateX(-24px) rotate(-4deg); opacity: 0; }
+  18% { opacity: 1; }
+  48% { transform: translateX(35px) rotate(3deg); opacity: 1; }
+  82% { transform: translateX(86px) rotate(-3deg); opacity: 1; }
+  100% { transform: translateX(106px) rotate(4deg); opacity: 0; }
+}
+
+@keyframes mira-bike-ride-wide {
+  0% { left: -30px; transform: translateY(2px) rotate(-7deg) scale(.9); opacity: 0; }
+  6% { opacity: 1; }
+  22% { transform: translateY(-2px) rotate(5deg) scale(1.08); }
+  40% { transform: translateY(1px) rotate(-4deg) scale(1); }
+  58% { transform: translateY(-3px) rotate(5deg) scale(1.1); }
+  76% { transform: translateY(1px) rotate(-3deg) scale(1); }
+  93% { opacity: 1; }
+  100% { left: calc(100% - 18px); transform: translateY(-1px) rotate(5deg) scale(.94); opacity: 0; }
+}
+
+@keyframes mira-bike-pedal-bob {
+  0%, 100% { transform: translateY(1px) rotate(-2deg); }
+  50% { transform: translateY(-1px) rotate(2deg); }
+}
+
+@keyframes mira-confetti-fall {
+  0% { transform: translate3d(0, -12vh, 0) rotate(0deg); opacity: 0; }
+  7% { opacity: 1; }
+  32% { transform: translate3d(var(--mira-confetti-mid-drift), 28vh, 0) rotate(calc(245deg + var(--mira-confetti-rotation))); }
+  65% { transform: translate3d(var(--mira-confetti-drift), 67vh, 0) rotate(calc(490deg + var(--mira-confetti-rotation))); }
+  100% { transform: translate3d(var(--mira-confetti-drift), 112vh, 0) rotate(calc(720deg + var(--mira-confetti-rotation))); opacity: 0; }
+}
+
+@keyframes mira-celebration-flare {
+  0% { transform: scale(.15); opacity: 0; }
+  18% { opacity: .85; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+@keyframes mira-confetti-cannon-pop {
+  0%, 100% { transform: translateY(18px) scale(.8) rotate(-20deg); opacity: 0; }
+  18%, 70% { transform: translateY(0) scale(1) rotate(-20deg); opacity: 1; }
+}
+
+@keyframes mira-celebration-spark {
+  0%, 100% { transform: scale(.35) rotate(0deg); opacity: 0; }
+  35%, 68% { transform: scale(1.2) rotate(90deg); opacity: 1; }
+}
+
+@keyframes mira-champion-glow {
+  0%, 100% { opacity: 0; transform: scale(.9); }
+  18%, 62% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes mira-finale-balloon-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-4deg) scale(var(--mira-balloon-scale)); }
+  50% { transform: translate3d(13px, -24px, 0) rotate(5deg) scale(var(--mira-balloon-scale)); }
+}
+
+@keyframes mira-welcome-aurora-shift {
+  0%, 100% { background-position: 0% 35%, 100% 70%, 50% 50%; }
+  50% { background-position: 18% 8%, 80% 92%, 50% 50%; }
+}
+
+@keyframes mira-welcome-aurora-wave {
+  0%, 100% { transform: translate3d(-8%, -4%, 0) rotate(0deg) scale(1); }
+  50% { transform: translate3d(8%, 6%, 0) rotate(24deg) scale(1.13); }
+}
+
+@keyframes mira-welcome-orb-one {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: .62; }
+  50% { transform: translate3d(74px, 46px, 0) scale(1.28); opacity: 1; }
+}
+
+@keyframes mira-welcome-orb-two {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: .65; }
+  50% { transform: translate3d(-86px, -56px, 0) scale(1.22); opacity: 1; }
+}
+
+
+.mira-bike-track {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 92px;
+  height: 28px;
+  transform: translateY(-50%);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mira-bike-route {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 5px;
+  border-top: 1px dashed rgba(186, 230, 253, .68);
+}
+
+.mira-bike-rider {
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  color: #fcd34d;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .4));
+  animation: mira-bike-ride 5.4s ease-in-out infinite;
+}
+
+.mira-bike-title--home {
+  left: 22px;
+  right: 22px;
+  width: auto;
+  height: 34px;
+}
+
+.mira-bike-title--home .mira-bike-route {
+  display: none;
+}
+
+.mira-bike-title--home .mira-bike-rider {
+  bottom: 2px;
+  color: #fde047;
+  filter: drop-shadow(0 0 4px rgba(250, 204, 21, .7)) drop-shadow(0 2px 3px rgba(0, 0, 0, .45));
+  animation: mira-bike-ride-wide 8.2s cubic-bezier(.42, .06, .25, 1) infinite;
+}
+
+.mira-bike-rider svg {
+  display: block;
+  animation: mira-bike-pedal-bob .68s ease-in-out infinite;
+}
+
+.mira-bike-title--home .mira-bike-rider svg {
+  width: 28px;
+  height: 28px;
+}
+
+.mira-title-copy {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  padding-inline: 12px;
+  background: #0a2c5a;
+  box-shadow: 0 0 0 7px #0a2c5a;
+}
+
+.mira-confetti {
+  position: absolute;
+  top: -15vh;
+  border-radius: 2px;
+  opacity: 0;
+  box-shadow: 0 1px 3px rgba(255, 255, 255, .42);
+  animation-name: mira-confetti-fall;
+  animation-timing-function: cubic-bezier(.18, .72, .36, 1);
+  animation-fill-mode: both;
+}
+
+.mira-confetti--circle { border-radius: 999px; }
+
+.mira-confetti--ribbon {
+  border-radius: 999px;
+  transform-origin: center;
+}
+
+.mira-confetti--square::after,
+.mira-confetti--ribbon::after {
+  content: '';
+  position: absolute;
+  inset: 1px auto 1px 1px;
+  width: 28%;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, .38);
+}
+
+.mira-champion-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 25%, rgba(251, 191, 36, .15), transparent 22%), radial-gradient(circle at 8% 90%, rgba(56, 189, 248, .18), transparent 28%), radial-gradient(circle at 92% 90%, rgba(167, 139, 250, .18), transparent 28%);
+  animation: mira-champion-glow 4.6s ease-out both;
+}
+
+.mira-celebration-flare {
+  position: absolute;
+  width: 310px;
+  height: 310px;
+  border-radius: 999px;
+  background: repeating-conic-gradient(from 5deg, rgba(251, 191, 36, .82) 0 4deg, transparent 4deg 13deg, rgba(56, 189, 248, .72) 13deg 17deg, transparent 17deg 27deg, rgba(167, 139, 250, .72) 27deg 31deg, transparent 31deg 42deg);
+  mask-image: radial-gradient(circle, transparent 0 19%, #000 20% 25%, transparent 26% 100%);
+  animation: mira-celebration-flare 1.25s ease-out both;
+}
+
+.mira-celebration-flare--left { left: -112px; bottom: -122px; }
+.mira-celebration-flare--right { right: -112px; bottom: -122px; animation-delay: .15s; }
+.mira-celebration-flare--top { left: calc(50% - 155px); top: -170px; animation-delay: .28s; }
+
+.mira-confetti-cannon {
+  position: absolute;
+  bottom: 18px;
+  color: #fbbf24;
+  filter: drop-shadow(0 0 12px rgba(251, 191, 36, .72));
+  animation: mira-confetti-cannon-pop 1.8s ease-out both;
+}
+
+.mira-confetti-cannon--left { left: 28px; }
+.mira-confetti-cannon--right { right: 28px; }
+.mira-confetti-cannon--right svg { transform: scaleX(-1); }
+
+.mira-celebration-spark {
+  position: absolute;
+  color: #fff7c2;
+  font-size: 42px;
+  line-height: 1;
+  text-shadow: 0 0 15px rgba(251, 191, 36, .9);
+  animation: mira-celebration-spark 1.3s ease-out both;
+}
+
+.mira-celebration-spark--one { left: 16%; top: 23%; animation-delay: .18s; }
+.mira-celebration-spark--two { right: 18%; top: 30%; animation-delay: .42s; }
+.mira-celebration-spark--three { left: 51%; top: 12%; animation-delay: .3s; }
+
+.mira-finale-balloon {
+  position: absolute;
+  width: 74px;
+  height: 88px;
+  border-radius: 52% 48% 50% 50%;
+  background: radial-gradient(circle at 31% 26%, rgba(255,255,255,.95) 0 5%, rgba(255,255,255,.3) 6% 12%, transparent 13%), linear-gradient(135deg, color-mix(in srgb, var(--mira-balloon-color) 70%, white), var(--mira-balloon-color) 58%, color-mix(in srgb, var(--mira-balloon-color) 78%, black));
+  box-shadow: inset -9px -10px 16px rgba(0,0,0,.16), 0 13px 24px rgba(2,12,35,.24);
+  opacity: .9;
+  animation: mira-finale-balloon-float var(--mira-balloon-duration) ease-in-out var(--mira-balloon-delay) infinite;
+}
+
+.mira-finale-balloon::before {
+  content: '';
+  position: absolute;
+  left: calc(50% - 7px);
+  bottom: -9px;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 12px solid var(--mira-balloon-color);
+}
+
+.mira-finale-balloon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 2px);
+  width: 1px;
+  height: 76px;
+  background: linear-gradient(to bottom, rgba(255,255,255,.72), rgba(125,211,252,.12));
+  transform: rotate(7deg);
+  transform-origin: top;
+}
+
+.mira-welcome-aurora {
+  background-image: radial-gradient(circle at 18% 18%, rgba(37, 99, 235, .42), transparent 31%), radial-gradient(circle at 84% 76%, rgba(14, 165, 233, .31), transparent 34%), linear-gradient(135deg, #05152d 0%, #082d5c 52%, #061a36 100%);
+  background-size: 145% 145%, 150% 150%, 100% 100%;
+  animation: mira-welcome-aurora-shift 8s ease-in-out infinite;
+}
+
+.mira-welcome-aurora::before {
+  content: '';
+  position: absolute;
+  inset: -26%;
+  background: conic-gradient(from 155deg at 50% 50%, transparent 0 22%, rgba(56,189,248,.28) 32%, transparent 43% 58%, rgba(96,165,250,.28) 68%, transparent 79%);
+  filter: blur(58px);
+  opacity: .8;
+  mix-blend-mode: screen;
+  animation: mira-welcome-aurora-wave 9s ease-in-out infinite;
+}
+
+.mira-welcome-orb--one { animation: mira-welcome-orb-one 8s ease-in-out infinite; }
+.mira-welcome-orb--two { animation: mira-welcome-orb-two 9s ease-in-out infinite; }
+
+
+@media (prefers-reduced-motion: reduce) {
+  .mira-bike-rider { animation: none; transform: translateX(35px); }
+  .mira-bike-title--home .mira-bike-rider { left: 46%; transform: none; }
+  .mira-confetti { animation: none; }
+  .mira-celebration-flare, .mira-confetti-cannon, .mira-celebration-spark { animation: none; }
+  .mira-finale-balloon { animation: none; }
+  .mira-welcome-aurora { animation: none; }
+  .mira-welcome-aurora::before, .mira-welcome-orb { animation: none; }
+}
