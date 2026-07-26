@@ -1,4 +1,4 @@
-const CACHE_NAME = 'adventureworks-pwa-v1';
+const CACHE_NAME = 'adventureworks-pwa-v3';
 const APP_SHELL = ['/', '/manifest.webmanifest', '/icon'];
 
 self.addEventListener('install', (event) => {

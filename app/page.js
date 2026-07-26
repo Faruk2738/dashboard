@@ -97,10 +97,13 @@ export default function IntroPage() {
           src="/assets/intro8.mp4" 
           className="w-full h-full object-contain"
           onEnded={showOverlay}
+          onError={showOverlay}
           autoPlay
           playsInline
           controls
           muted={isMuted}
+          preload="auto"
+          poster="/assets/intro-light.png"
           onVolumeChange={(event) => setIsMuted(event.currentTarget.muted || event.currentTarget.volume === 0)}
         />
       )}

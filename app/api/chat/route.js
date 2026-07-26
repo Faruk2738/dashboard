@@ -30,7 +30,7 @@ export async function POST(request) {
     }
 
     // Read aggregated data to provide context to the AI
-    const dataPath = path.join(process.cwd(), 'data', 'aggregated.json');
+    const dataPath = path.join(process.cwd(), 'Data', 'aggregated.json');
     let contextData = {};
     if (fs.existsSync(dataPath)) {
       contextData = JSON.parse(fs.readFileSync(dataPath, 'utf8'));

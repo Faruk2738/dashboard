@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const inputPath = path.join(__dirname, '../data/AdventureWorksJson.json');
-const outputPath = path.join(__dirname, '../data/aggregated.json');
+const inputPath = path.join(__dirname, '../Data/AdventureWorksJson.json');
+const outputPath = path.join(__dirname, '../Data/aggregated.json');
 
 if (!fs.existsSync(inputPath) && fs.existsSync(outputPath)) {
   console.log('Raw dataset is unavailable; using the committed aggregated data.');

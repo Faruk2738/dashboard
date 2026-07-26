@@ -1,10 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import OverviewClient from './OverviewClient';
+import CampaignOneClient from './CampaignGalleryClient';
 
-export default async function OverviewPage() {
+export default async function CampaignOnePage() {
   const dataPath = path.join(process.cwd(), 'Data', 'aggregated.json');
   const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
 
-  return <OverviewClient data={data} />;
+  return <CampaignOneClient data={data} />;
 }
