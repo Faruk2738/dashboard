@@ -1,0 +1,169 @@
+/// Sales data for the native interactive AdventureWorks report.
+table Sales
+	lineageTag: f20e43a5-757f-4914-b2ff-d1bef3bad162
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Total Sales' = SUM('Sales'[Sales Amount])
+		formatString: $#,##0
+		lineageTag: ccbfa4db-e561-4126-affd-3354c8f1993b
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Total Profit' = SUM('Sales'[Profit])
+		formatString: $#,##0
+		lineageTag: a82b732a-5177-4479-a2d7-16ca94794388
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Profit Margin' = DIVIDE([Total Profit], [Total Sales])
+		formatString: 0.0%
+		lineageTag: 59ebc5c8-a5ce-4fe9-b32b-f38a2e5c5e2f
+
+	/// Business measure used by the AdventureWorks report.
+	measure Orders = DISTINCTCOUNT('Sales'[Sales Order])
+		formatString: #,##0
+		lineageTag: 487da8f1-ed45-424b-9f6a-2a23ddca10a0
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Units Sold' = SUM('Sales'[Order Quantity])
+		formatString: #,##0
+		lineageTag: 22964f5e-8fa3-4fd7-8411-a643ab44f6ba
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Average Order Value' = DIVIDE([Total Sales], [Orders])
+		formatString: $#,##0
+		lineageTag: befd01ef-16be-420c-b68f-9094fe4fcc68
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Sales Forecast' = [Total Sales] * 1.035
+		formatString: $#,##0
+		lineageTag: b2ffc45a-09f7-4a08-897d-432737bd5cf4
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Total Product Cost' = SUM('Sales'[Product Cost])
+		formatString: $#,##0
+		lineageTag: c9be8fe0-6087-4e54-bf7f-36b20bdfecba
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Average Discount' = AVERAGE('Sales'[Discount Pct])
+		formatString: 0.0
+		lineageTag: 60cc57d7-fe59-44dc-8e2b-ed92223bc54a
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Active Customers' = DISTINCTCOUNT('Sales'[Customer Key])
+		formatString: #,##0
+		lineageTag: 97ef1d08-53f6-438c-b2c9-d97bbc4eb8bf
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Repeat Active Customers' = CALCULATE(DISTINCTCOUNT('Sales'[Customer Key]), KEEPFILTERS('Customer'[Frequency] > 1))
+		formatString: #,##0
+		lineageTag: 9081cf65-6d91-4046-aada-8d03f5860680
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'New Active Customers' = CALCULATE(DISTINCTCOUNT('Sales'[Customer Key]), KEEPFILTERS('Customer'[Frequency] = 1))
+		formatString: #,##0
+		lineageTag: 703e2278-3e16-4a5d-b2f3-ee041030ea0d
+
+	/// Sales Order Line imported from the prepared AdventureWorks dataset.
+	column 'Sales Order Line'
+		dataType: string
+		lineageTag: 245942cf-4a0b-48ad-9069-bb75eb360b94
+		summarizeBy: none
+		sourceColumn: SalesOrderLine
+
+	/// Sales Order imported from the prepared AdventureWorks dataset.
+	column 'Sales Order'
+		dataType: string
+		lineageTag: 85b37d47-6da5-410b-a3a3-ed4d4279902e
+		summarizeBy: none
+		sourceColumn: SalesOrder
+
+	/// Date Key imported from the prepared AdventureWorks dataset.
+	column 'Date Key'
+		dataType: int64
+		isHidden
+		lineageTag: bf82ba6f-82e2-47df-a250-6da436f4f517
+		summarizeBy: none
+		sourceColumn: DateKey
+
+	/// Customer Key imported from the prepared AdventureWorks dataset.
+	column 'Customer Key'
+		dataType: int64
+		isHidden
+		lineageTag: 25bbbd07-a147-4fc4-9b41-ee7d7731df70
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+	/// Product Key imported from the prepared AdventureWorks dataset.
+	column 'Product Key'
+		dataType: int64
+		isHidden
+		lineageTag: 57aa1abd-038c-4819-bd91-b7f5e01f68a8
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	/// Territory Key imported from the prepared AdventureWorks dataset.
+	column 'Territory Key'
+		dataType: string
+		isHidden
+		lineageTag: c81922bd-4962-4ae1-b3a7-9bb9aa0b27ec
+		summarizeBy: none
+		sourceColumn: TerritoryKey
+
+	/// Channel imported from the prepared AdventureWorks dataset.
+	column Channel
+		dataType: string
+		lineageTag: fc281d46-2765-4e5e-9b93-3601bc124a08
+		summarizeBy: none
+		sourceColumn: Channel
+
+	/// Order Quantity imported from the prepared AdventureWorks dataset.
+	column 'Order Quantity'
+		dataType: int64
+		lineageTag: a58c0317-d78e-436a-b6b1-91f6b7d73a4f
+		summarizeBy: none
+		sourceColumn: OrderQuantity
+
+	/// Unit Price imported from the prepared AdventureWorks dataset.
+	column 'Unit Price'
+		dataType: decimal
+		lineageTag: 3c111b61-44b9-4d89-953a-21b7d43ec423
+		summarizeBy: none
+		sourceColumn: UnitPrice
+
+	/// Sales Amount imported from the prepared AdventureWorks dataset.
+	column 'Sales Amount'
+		dataType: decimal
+		lineageTag: 09dc77bb-79ce-4020-a213-31539b4db22d
+		summarizeBy: none
+		sourceColumn: SalesAmount
+
+	/// Product Cost imported from the prepared AdventureWorks dataset.
+	column 'Product Cost'
+		dataType: decimal
+		lineageTag: 36858580-e57f-406f-b53b-91d7816bc66b
+		summarizeBy: none
+		sourceColumn: ProductCost
+
+	/// Profit imported from the prepared AdventureWorks dataset.
+	column Profit
+		dataType: decimal
+		lineageTag: 033f719d-1202-4e63-8a9b-1124e1357bb2
+		summarizeBy: none
+		sourceColumn: Profit
+
+	/// Discount Pct imported from the prepared AdventureWorks dataset.
+	column 'Discount Pct'
+		dataType: decimal
+		lineageTag: 5a0f22fe-cfd7-463c-bff2-5197c7da8a40
+		summarizeBy: none
+		sourceColumn: DiscountPct
+
+	partition Sales = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents("C:\\Users\\ofaru\\OneDrive\\Masaüstü\\Dashboard\\PowerBI\\Data\\FactSales.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					#"Changed Types" = Table.TransformColumnTypes(#"Promoted Headers", {{"SalesOrderLine", type text}, {"SalesOrder", type text}, {"DateKey", Int64.Type}, {"CustomerKey", Int64.Type}, {"ProductKey", Int64.Type}, {"TerritoryKey", type text}, {"Channel", type text}, {"OrderQuantity", Int64.Type}, {"UnitPrice", Currency.Type}, {"SalesAmount", Currency.Type}, {"ProductCost", Currency.Type}, {"Profit", Currency.Type}, {"DiscountPct", Currency.Type}}, "en-US")
+				in
+					#"Changed Types"
+

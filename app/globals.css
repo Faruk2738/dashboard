@@ -102,6 +102,69 @@
   50% { transform: translate3d(-86px, -56px, 0) scale(1.22); opacity: 1; }
 }
 
+@property --intro-light-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes intro-border-light-orbit {
+  to { --intro-light-angle: 360deg; }
+}
+
+@keyframes intro-start-button-glow {
+  0%, 58%, 100% { box-shadow: 0 14px 30px rgba(37, 99, 235, .35); }
+  68% { box-shadow: 0 14px 34px rgba(37, 99, 235, .48), 0 0 26px rgba(56, 189, 248, .5), 0 0 8px rgba(251, 191, 36, .28); }
+}
+
+@keyframes intro-start-button-shine {
+  0%, 58% { transform: translateX(-180%) skewX(-18deg); opacity: 0; }
+  63% { opacity: .8; }
+  73% { transform: translateX(260%) skewX(-18deg); opacity: 0; }
+  100% { transform: translateX(260%) skewX(-18deg); opacity: 0; }
+}
+
+.intro-border-light {
+  inset: 10px;
+  border-radius: 28px;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--intro-light-angle),
+    transparent 0deg 292deg,
+    rgba(56, 189, 248, .08) 304deg,
+    rgba(56, 189, 248, .9) 320deg,
+    rgba(255, 255, 255, 1) 330deg,
+    rgba(251, 191, 36, .92) 339deg,
+    rgba(56, 189, 248, .22) 350deg,
+    transparent 360deg
+  );
+  filter: drop-shadow(0 0 7px rgba(56, 189, 248, .85)) drop-shadow(0 0 16px rgba(37, 99, 235, .45));
+  animation: intro-border-light-orbit 5.5s linear infinite;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.intro-start-button {
+  animation: intro-start-button-glow 5.5s ease-in-out infinite;
+}
+
+.intro-start-button::after {
+  content: '';
+  position: absolute;
+  inset: -35% auto -35% -18%;
+  width: 32%;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .8), rgba(253, 230, 138, .5), transparent);
+  filter: blur(1px);
+  animation: intro-start-button-shine 5.5s ease-in-out infinite;
+}
+
+.intro-start-button > * {
+  position: relative;
+  z-index: 1;
+}
+
 
 .mira-bike-track {
   position: absolute;
@@ -353,4 +416,6 @@
   .mira-finale-balloon { animation: none; }
   .mira-welcome-aurora { animation: none; }
   .mira-welcome-aurora::before, .mira-welcome-orb { animation: none; }
+  .intro-border-light { animation: none; --intro-light-angle: 32deg; }
+  .intro-start-button, .intro-start-button::after { animation: none; }
 }

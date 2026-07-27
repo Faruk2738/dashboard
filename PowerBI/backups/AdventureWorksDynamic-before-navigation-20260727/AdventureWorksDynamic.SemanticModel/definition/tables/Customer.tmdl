@@ -1,0 +1,122 @@
+/// Customer data for the native interactive AdventureWorks report.
+table Customer
+	lineageTag: 826a0819-0df6-4a88-a533-d230c05db0b8
+
+	/// Business measure used by the AdventureWorks report.
+	measure Customers = DISTINCTCOUNT('Customer'[Customer Key])
+		formatString: #,##0
+		lineageTag: 60218cb5-b1a7-414e-882d-d110fbf87ccc
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Repeat Customers' = CALCULATE([Customers], KEEPFILTERS('Customer'[Frequency] > 1))
+		formatString: #,##0
+		lineageTag: 638cb5a1-770a-4d6d-930e-013bb0306ab4
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Repeat Rate' = DIVIDE([Repeat Customers], [Customers])
+		formatString: 0.0%
+		lineageTag: 045ca70b-5821-488a-a0e9-9723edef130c
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Customer Revenue' = SUM('Customer'[Monetary])
+		formatString: $#,##0
+		lineageTag: b66d5e33-2c25-40ad-9105-fa51f2b4e074
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Average Customer Value' = DIVIDE([Customer Revenue], [Customers])
+		formatString: $#,##0
+		lineageTag: 9119d2ed-705e-475d-9b25-20dd020dc83f
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Average Recency' = AVERAGE('Customer'[Recency Days])
+		formatString: 0 days
+		lineageTag: 18ef21d8-873c-4c41-bbd1-3221fdce90c7
+
+	/// Customer Key imported from the prepared AdventureWorks dataset.
+	column 'Customer Key'
+		dataType: int64
+		isHidden
+		lineageTag: 1d7e8447-37f6-45e0-b308-e4694fd6a7ab
+		summarizeBy: none
+		sourceColumn: CustomerKey
+
+	/// Customer ID imported from the prepared AdventureWorks dataset.
+	column 'Customer ID'
+		dataType: string
+		lineageTag: 89821725-fa7f-4718-829b-fbdb7476033b
+		summarizeBy: none
+		sourceColumn: CustomerID
+
+	/// Customer imported from the prepared AdventureWorks dataset.
+	column Customer
+		dataType: string
+		lineageTag: fce917d3-48f1-406a-8ae8-49fb495cd356
+		summarizeBy: none
+		sourceColumn: Customer
+
+	/// City imported from the prepared AdventureWorks dataset.
+	column City
+		dataType: string
+		lineageTag: 3f3ec73e-66c8-4fcc-bd3f-7a95c0c26899
+		summarizeBy: none
+		sourceColumn: City
+
+	/// State Province imported from the prepared AdventureWorks dataset.
+	column 'State Province'
+		dataType: string
+		lineageTag: 43eb1215-8448-4227-a8fa-ebc94a4b2140
+		summarizeBy: none
+		sourceColumn: StateProvince
+
+	/// Country imported from the prepared AdventureWorks dataset.
+	column Country
+		dataType: string
+		lineageTag: 9975814a-64eb-4401-af9b-f4ebaf603959
+		summarizeBy: none
+		sourceColumn: CountryRegion
+
+	/// Postal Code imported from the prepared AdventureWorks dataset.
+	column 'Postal Code'
+		dataType: string
+		lineageTag: cbb4d26a-bbd4-4711-b947-a4b0383431cf
+		summarizeBy: none
+		sourceColumn: PostalCode
+
+	/// Recency Days imported from the prepared AdventureWorks dataset.
+	column 'Recency Days'
+		dataType: int64
+		lineageTag: d9d1ff54-3b95-4e99-8f1e-86ec6d8a200c
+		summarizeBy: none
+		sourceColumn: RecencyDays
+
+	/// Frequency imported from the prepared AdventureWorks dataset.
+	column Frequency
+		dataType: int64
+		lineageTag: b902874d-393e-40bd-962a-dad5ce28d626
+		summarizeBy: none
+		sourceColumn: Frequency
+
+	/// Monetary imported from the prepared AdventureWorks dataset.
+	column Monetary
+		dataType: decimal
+		lineageTag: b75aa3e1-0ed3-4d18-bba9-9a814091b118
+		summarizeBy: none
+		sourceColumn: Monetary
+
+	/// RFM Segment imported from the prepared AdventureWorks dataset.
+	column 'RFM Segment'
+		dataType: string
+		lineageTag: b5a80ed4-055a-427f-a8aa-5c18b7f93690
+		summarizeBy: none
+		sourceColumn: RFMSegment
+
+	partition Customer = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents("C:\\Users\\ofaru\\OneDrive\\Masaüstü\\Dashboard\\PowerBI\\Data\\DimCustomer.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					#"Changed Types" = Table.TransformColumnTypes(#"Promoted Headers", {{"CustomerKey", Int64.Type}, {"CustomerID", type text}, {"Customer", type text}, {"City", type text}, {"StateProvince", type text}, {"CountryRegion", type text}, {"PostalCode", type text}, {"RecencyDays", Int64.Type}, {"Frequency", Int64.Type}, {"Monetary", Currency.Type}, {"RFMSegment", type text}}, "en-US")
+				in
+					#"Changed Types"
+

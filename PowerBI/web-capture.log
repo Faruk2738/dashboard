@@ -1,0 +1,22 @@
+
+> temp_next@0.1.0 dev
+> next dev --hostname 127.0.0.1 --port 3210
+
+▲ Next.js 16.2.10 (Turbopack)
+- Local:         http://127.0.0.1:3210
+- Network:       http://127.0.0.1:3210
+- Environments: .env.local, .env
+✓ Ready in 2.5s
+Creating turbopack project {
+  dir: 'C:\\Users\\ofaru\\OneDrive\\Masaüstü\\Dashboard',
+  testMode: true
+}
+
+ GET / 200 in 3.2s (next.js: 1183ms, application-code: 1973ms)
+ GET /thank-you 200 in 3.2s (next.js: 2.3s, application-code: 953ms)
+ GET /manifest.webmanifest 200 in 1151ms (next.js: 916ms, application-code: 235ms)
+ GET /manifest.webmanifest 200 in 1196ms (next.js: 1169ms, application-code: 27ms)
+ GET /icon 200 in 4.7s (next.js: 240ms, application-code: 4.5s)
+ GET /icon 200 in 404ms (next.js: 188ms, application-code: 216ms)
+✓ Finished filesystem cache database compaction in 12.4s
+✓ Finished filesystem cache database compaction in 12.6s

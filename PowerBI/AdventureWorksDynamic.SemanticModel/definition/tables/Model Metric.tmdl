@@ -1,0 +1,62 @@
+/// Model Metric data for the native interactive AdventureWorks report.
+table 'Model Metric'
+	lineageTag: 1f07b9e2-7aa3-42f6-917a-29cf1278f674
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'ADF Statistic' = CALCULATE(MAX('Model Metric'[Value]), 'Model Metric'[Metric] = "Test statistic")
+		formatString: 0.000
+		lineageTag: 2f4a91a7-602a-4fea-aa82-81d2e29d8407
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'ADF P Value' = CALCULATE(MAX('Model Metric'[Value]), 'Model Metric'[Metric] = "p-value")
+		formatString: 0.000
+		lineageTag: c73c4139-862b-48a3-88a0-72ec42e05a59
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'XGBoost Test MAE' = CALCULATE(MAX('Model Metric'[Value]), 'Model Metric'[Model] = "XGBoost", 'Model Metric'[Dataset] = "Test", 'Model Metric'[Metric] = "MAE")
+		formatString: 0.000
+		lineageTag: 46ec02c5-7a95-475d-93be-82b6fd338ba1
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'XGBoost Test RMSE' = CALCULATE(MAX('Model Metric'[Value]), 'Model Metric'[Model] = "XGBoost", 'Model Metric'[Dataset] = "Test", 'Model Metric'[Metric] = "RMSE")
+		formatString: 0.000
+		lineageTag: bac031cf-9228-4ae2-97de-3412761d21b3
+
+	/// Model imported from the prepared AdventureWorks dataset.
+	column Model
+		dataType: string
+		lineageTag: 8b2286c4-bbc5-441c-baa0-2a8d98b27e4a
+		summarizeBy: none
+		sourceColumn: Model
+
+	/// Dataset imported from the prepared AdventureWorks dataset.
+	column Dataset
+		dataType: string
+		lineageTag: d3f7edb8-c2be-4024-b10b-7c0bdca24828
+		summarizeBy: none
+		sourceColumn: Dataset
+
+	/// Metric imported from the prepared AdventureWorks dataset.
+	column Metric
+		dataType: string
+		lineageTag: e9adf738-f74d-4fee-a4a2-a5f75b04c385
+		summarizeBy: none
+		sourceColumn: Metric
+
+	/// Value imported from the prepared AdventureWorks dataset.
+	column Value
+		dataType: decimal
+		lineageTag: 12981681-13b6-4fb4-8810-ce2f8d9e1d06
+		summarizeBy: none
+		sourceColumn: Value
+
+	partition 'Model Metric' = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents("C:\\Users\\ofaru\\OneDrive\\Masaüstü\\Dashboard\\PowerBI\\Data\\ModelMetrics.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					#"Changed Types" = Table.TransformColumnTypes(#"Promoted Headers", {{"Model", type text}, {"Dataset", type text}, {"Metric", type text}, {"Value", Currency.Type}}, "en-US")
+				in
+					#"Changed Types"
+

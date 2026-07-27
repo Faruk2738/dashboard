@@ -1,0 +1,345 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "48e4bbb20b253677781c",
+  "position": {
+    "x": 540,
+    "y": 526,
+    "z": 5000,
+    "height": 300,
+    "width": 710,
+    "tabOrder": 5000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Forecast"
+                    }
+                  },
+                  "Property": "Week Start"
+                }
+              },
+              "queryRef": "Forecast.Week Start",
+              "nativeQueryRef": "Week Start"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Forecast"
+                    }
+                  },
+                  "Property": "Period"
+                }
+              },
+              "queryRef": "Forecast.Period",
+              "nativeQueryRef": "Period"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Forecast"
+                    }
+                  },
+                  "Property": "Actual Sales Amount"
+                }
+              },
+              "queryRef": "Forecast.Actual Sales Amount",
+              "nativeQueryRef": "Actual Sales Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Forecast"
+                    }
+                  },
+                  "Property": "TES Forecast Amount"
+                }
+              },
+              "queryRef": "Forecast.TES Forecast Amount",
+              "nativeQueryRef": "TES Forecast Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Forecast"
+                    }
+                  },
+                  "Property": "ARIMA Forecast Amount"
+                }
+              },
+              "queryRef": "Forecast.ARIMA Forecast Amount",
+              "nativeQueryRef": "ARIMA Forecast Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Forecast"
+                    }
+                  },
+                  "Property": "SARIMA Forecast Amount"
+                }
+              },
+              "queryRef": "Forecast.SARIMA Forecast Amount",
+              "nativeQueryRef": "SARIMA Forecast Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Forecast"
+                    }
+                  },
+                  "Property": "XGBoost Forecast Amount"
+                }
+              },
+              "queryRef": "Forecast.XGBoost Forecast Amount",
+              "nativeQueryRef": "XGBoost Forecast Amount"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#D7E2F0'"
+                    }
+                  }
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Forecast Gallery — Three Models, Three Behaviors'"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#082D5C'"
+                    }
+                  }
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "13D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "dropShadow": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "preset": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Center'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "740ac9de0d4750a16a7c",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Forecast"
+              }
+            },
+            "Property": "Week Start"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "205d215e080ae7b43c01",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Forecast"
+              }
+            },
+            "Property": "Period"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "4867c1f76ed89d7d7049",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Forecast"
+              }
+            },
+            "Property": "Actual Sales Amount"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "5196c04601d44ea6a515",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Forecast"
+              }
+            },
+            "Property": "TES Forecast Amount"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "07f499567b8614c9a603",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Forecast"
+              }
+            },
+            "Property": "ARIMA Forecast Amount"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "ff4bdc463d3745dbe267",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Forecast"
+              }
+            },
+            "Property": "SARIMA Forecast Amount"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "137c00f61e9082264d84",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Forecast"
+              }
+            },
+            "Property": "XGBoost Forecast Amount"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

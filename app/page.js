@@ -61,6 +61,7 @@ export default function IntroPage() {
     return (
       <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#061a36] px-5 py-10 text-white">
         <div className="mira-welcome-aurora absolute inset-0" />
+        <div className="intro-border-light absolute inset-0 z-[5] pointer-events-none" aria-hidden="true" />
         <div className="mira-welcome-orb mira-welcome-orb--one absolute -left-24 top-12 h-72 w-72 rounded-full border border-sky-300/10 bg-sky-400/10 blur-3xl" />
         <div className="mira-welcome-orb mira-welcome-orb--two absolute -bottom-28 -right-20 h-80 w-80 rounded-full border border-blue-300/10 bg-blue-600/20 blur-3xl" />
         <section className="relative z-10 w-full max-w-3xl text-center">
@@ -78,7 +79,7 @@ export default function IntroPage() {
           <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-blue-200/75">Bu çalışma, <strong className="font-bold text-white">Miuul Data Analytics Bootcamp 10. Dönem</strong> yolculuğunda <strong className="font-bold text-white">Group by Adventure Riders</strong> takımı olarak hazırladığımız veri analitiği final projesidir.</p>
           <div className="mx-auto mt-7 flex items-center justify-center gap-2 text-xs font-semibold text-sky-100/75"><UsersRound size={15} className="text-sky-300" /> Miuul ailesine özel final sunumu</div>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-            <button type="button" onClick={() => setHasStarted(true)} className="group inline-flex items-center gap-3 rounded-full border border-sky-200/50 bg-gradient-to-r from-sky-500 to-blue-600 px-7 py-4 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(37,99,235,.35)] transition duration-300 hover:scale-105 hover:from-sky-400 hover:to-blue-500 focus:outline-none focus:ring-4 focus:ring-sky-300/35">
+            <button type="button" onClick={() => setHasStarted(true)} className="intro-start-button group relative inline-flex items-center gap-3 overflow-hidden rounded-full border border-sky-200/50 bg-gradient-to-r from-sky-500 to-blue-600 px-7 py-4 text-sm font-extrabold text-white shadow-[0_14px_30px_rgba(37,99,235,.35)] transition duration-300 hover:scale-105 hover:from-sky-400 hover:to-blue-500 focus:outline-none focus:ring-4 focus:ring-sky-300/35">
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 transition-transform duration-300 group-hover:translate-x-0.5"><Play size={15} fill="currentColor" /></span>
               Sunumu Başlat
             </button>

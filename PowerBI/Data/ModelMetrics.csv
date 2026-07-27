@@ -1,0 +1,9 @@
+Model,Dataset,Metric,Value
+ADF,Full series,Test statistic,-0.4679055234
+ADF,Full series,p-value,0.898128821
+XGBoost,Train,MAE,1.344494
+XGBoost,Train,RMSE,2.28447
+XGBoost,Train,MSE,5.218805
+XGBoost,Test,MAE,2.447011
+XGBoost,Test,RMSE,4.202405
+XGBoost,Test,MSE,17.660208

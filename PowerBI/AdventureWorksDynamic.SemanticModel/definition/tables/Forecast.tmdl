@@ -1,0 +1,88 @@
+/// Forecast data for the native interactive AdventureWorks report.
+table Forecast
+	lineageTag: 7b721c33-3c42-42c5-a382-112f0b75a034
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'Actual Sales Amount' = SUM('Forecast'[Actual Sales])
+		formatString: $#,##0
+		lineageTag: 43517409-d18a-45a8-8bc9-7af6eef2d45d
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'TES Forecast Amount' = SUM('Forecast'[TES Forecast])
+		formatString: $#,##0
+		lineageTag: 23f997d4-8f93-4c93-8f3c-884f84913e35
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'ARIMA Forecast Amount' = SUM('Forecast'[ARIMA Forecast])
+		formatString: $#,##0
+		lineageTag: 2849cefc-59a7-4a8a-97f3-9307bd5982b4
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'SARIMA Forecast Amount' = SUM('Forecast'[SARIMA Forecast])
+		formatString: $#,##0
+		lineageTag: 76dbce95-5aed-48d8-8950-40a724ef3ecf
+
+	/// Business measure used by the AdventureWorks report.
+	measure 'XGBoost Forecast Amount' = SUM('Forecast'[XGBoost Forecast])
+		formatString: $#,##0
+		lineageTag: 7fecb132-2320-4639-b8d3-206a9d6fa652
+
+	/// Week Start imported from the prepared AdventureWorks dataset.
+	column 'Week Start'
+		dataType: dateTime
+		lineageTag: 78af6c77-1509-4fa9-99b2-cd0d01eac03f
+		summarizeBy: none
+		sourceColumn: WeekStart
+
+	/// Period imported from the prepared AdventureWorks dataset.
+	column Period
+		dataType: string
+		lineageTag: 602cebe6-959d-460f-b5ae-e4438d481252
+		summarizeBy: none
+		sourceColumn: Period
+
+	/// Actual Sales imported from the prepared AdventureWorks dataset.
+	column 'Actual Sales'
+		dataType: decimal
+		lineageTag: 9f3a7f9f-43bd-44f0-aabd-2828574c1323
+		summarizeBy: none
+		sourceColumn: ActualSales
+
+	/// TES Forecast imported from the prepared AdventureWorks dataset.
+	column 'TES Forecast'
+		dataType: decimal
+		lineageTag: 4f782be0-327d-49de-b814-be444a5d5f1f
+		summarizeBy: none
+		sourceColumn: TESForecast
+
+	/// ARIMA Forecast imported from the prepared AdventureWorks dataset.
+	column 'ARIMA Forecast'
+		dataType: decimal
+		lineageTag: 8879a637-77c1-401b-ba2e-aafac990f648
+		summarizeBy: none
+		sourceColumn: ARIMAForecast
+
+	/// SARIMA Forecast imported from the prepared AdventureWorks dataset.
+	column 'SARIMA Forecast'
+		dataType: decimal
+		lineageTag: 999a1aad-fd6a-47d8-b8f5-ffc393535682
+		summarizeBy: none
+		sourceColumn: SARIMAForecast
+
+	/// XGBoost Forecast imported from the prepared AdventureWorks dataset.
+	column 'XGBoost Forecast'
+		dataType: decimal
+		lineageTag: d24c4a86-78b9-4708-98c3-c5fa43f3fbcc
+		summarizeBy: none
+		sourceColumn: XGBoostForecast
+
+	partition Forecast = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents("C:\\Users\\ofaru\\OneDrive\\Masaüstü\\Dashboard\\PowerBI\\Data\\WeeklyForecasts.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					#"Changed Types" = Table.TransformColumnTypes(#"Promoted Headers", {{"WeekStart", type datetime}, {"Period", type text}, {"ActualSales", Currency.Type}, {"TESForecast", Currency.Type}, {"ARIMAForecast", Currency.Type}, {"SARIMAForecast", Currency.Type}, {"XGBoostForecast", Currency.Type}}, "en-US")
+				in
+					#"Changed Types"
+

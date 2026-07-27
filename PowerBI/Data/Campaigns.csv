@@ -1,0 +1,7 @@
+CampaignKey,RFMSegment,Campaign,CampaignType,Audience,Offer,Channel,Status
+1,Champions,AdventureWorks Ambassador,Referral campaign,1742,$20 credit per successful referral,Email + App,Ready
+2,At Risk,Ride Again,Win-back campaign,3238,10% on 2 accessories or 15% on 3+,Email + App,Ready
+3,Loyal,Ride More. Earn More.,Tiered loyalty campaign,3259,"Bronze, Silver & Gold rewards",Email + App,Ready
+4,Lost,Why You Are Special,High-value recovery,1039,Personal advice and curated bike bundles,Email + App,Ready
+5,New,Thanks for Riding With Us,Welcome campaign,3286,10% off next accessory purchase,Email + App,Ready
+6,Lost,Last Chance Trade-In,Reactivation campaign,3115,Trade-in offer and special price,Email + App,Ready

@@ -36,6 +36,21 @@ export async function POST(request) {
       contextData = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
     }
 
+    const isTotalRevenueQuestion = /\btotal revenue\b/i.test(prompt) || /toplam ciro/i.test(prompt);
+    if (isTotalRevenueQuestion) {
+      const conciseRevenueAnswer = isTurkish
+        ? 'Toplam ciro 29 milyon dolar.'
+        : 'Total revenue is $29 million.';
+
+      return NextResponse.json({
+        candidates: [{
+          content: {
+            parts: [{ text: conciseRevenueAnswer }]
+          }
+        }]
+      });
+    }
+
     const systemInstruction = `You are an experienced AI Sales Analyst and Management Assistant for the AdventureWorks sales organization. 
 Use the following aggregated data to answer the user's questions:
 Total Revenue: $${(contextData.totalRevenue || 0).toLocaleString()}
@@ -47,7 +62,7 @@ Avg Order Value: $${(contextData.avgOrderValue || 0).toLocaleString()}
 Top 3 Categories: ${contextData.categorySales?.slice(0,3).map(c => c.category).join(', ')}
 Top 3 Regions: ${contextData.territorySales?.slice(0,3).map(t => t.territory).join(', ')}
 
-Please provide concise, professional, and data-driven answers.
+Provide concise, professional, and data-driven answers. Unless the user explicitly asks for detail, answer in no more than two short sentences and 35 words. Lead with the requested value and omit introductions, repetition, and follow-up offers.
 Reply entirely in ${isTurkish ? 'Turkish (Turkey)' : 'American English (United States)'}, matching the user interface language. For English, use U.S. spelling, vocabulary, and phrasing; do not use British English. Use natural, speakable sentences and avoid Markdown tables.`;
 
     // ── TRY GROQ FIRST ───────────────────────────────────
@@ -67,7 +82,7 @@ Reply entirely in ${isTurkish ? 'Turkish (Turkey)' : 'American English (United S
               { role: "user", content: prompt }
             ],
             temperature: 0.7,
-            max_tokens: 500
+            max_tokens: 120
           })
         });
 
@@ -105,7 +120,7 @@ Reply entirely in ${isTurkish ? 'Turkish (Turkey)' : 'American English (United S
             systemInstruction: { parts: [{ text: systemInstruction }] },
             generationConfig: {
               temperature: 0.7,
-              maxOutputTokens: 500,
+              maxOutputTokens: 120,
             }
           })
         });

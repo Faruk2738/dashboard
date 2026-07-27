@@ -1,0 +1,16 @@
+relationship 'Sales to Date'
+	fromColumn: Sales.'Date Key'
+	toColumn: Date.'Date Key'
+
+relationship 'Sales to Customer'
+	fromColumn: Sales.'Customer Key'
+	toColumn: Customer.'Customer Key'
+
+relationship 'Sales to Product'
+	fromColumn: Sales.'Product Key'
+	toColumn: Product.'Product Key'
+
+relationship 'Sales to Territory'
+	fromColumn: Sales.'Territory Key'
+	toColumn: Territory.'Territory Key'
+

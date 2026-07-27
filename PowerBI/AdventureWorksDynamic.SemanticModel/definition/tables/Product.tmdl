@@ -1,0 +1,71 @@
+/// Product data for the native interactive AdventureWorks report.
+table Product
+	lineageTag: cb5dd229-5237-4395-b1f0-86d140d1026a
+
+	/// Product Key imported from the prepared AdventureWorks dataset.
+	column 'Product Key'
+		dataType: int64
+		isHidden
+		lineageTag: 366641eb-5652-49cf-8964-b58e2e2c3831
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	/// SKU imported from the prepared AdventureWorks dataset.
+	column SKU
+		dataType: string
+		lineageTag: 9418a787-aa49-4df6-8309-624fe7d31de9
+		summarizeBy: none
+		sourceColumn: SKU
+
+	/// Product imported from the prepared AdventureWorks dataset.
+	column Product
+		dataType: string
+		lineageTag: 51396f36-a41f-4cb9-8c0d-cc867f69c6fe
+		summarizeBy: none
+		sourceColumn: Product
+
+	/// Model imported from the prepared AdventureWorks dataset.
+	column Model
+		dataType: string
+		lineageTag: 1292dc7c-3a2e-43d0-9ac6-db6d81b491b6
+		summarizeBy: none
+		sourceColumn: Model
+
+	/// Subcategory imported from the prepared AdventureWorks dataset.
+	column Subcategory
+		dataType: string
+		lineageTag: a939e8da-741e-4f9f-b969-98a914d33882
+		summarizeBy: none
+		sourceColumn: Subcategory
+
+	/// Category imported from the prepared AdventureWorks dataset.
+	column Category
+		dataType: string
+		lineageTag: 0a8fb0a0-8a4f-4eec-9697-5f412a9de4e3
+		summarizeBy: none
+		sourceColumn: Category
+
+	/// Standard Cost imported from the prepared AdventureWorks dataset.
+	column 'Standard Cost'
+		dataType: decimal
+		lineageTag: c32cf956-fc71-4897-8761-eea2e39d32f6
+		summarizeBy: none
+		sourceColumn: StandardCost
+
+	/// List Price imported from the prepared AdventureWorks dataset.
+	column 'List Price'
+		dataType: decimal
+		lineageTag: 31f1456c-0c85-4c3d-bf9d-dbb742a3d834
+		summarizeBy: none
+		sourceColumn: ListPrice
+
+	partition Product = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents("C:\\Users\\ofaru\\OneDrive\\Masaüstü\\Dashboard\\PowerBI\\Data\\DimProduct.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					#"Changed Types" = Table.TransformColumnTypes(#"Promoted Headers", {{"ProductKey", Int64.Type}, {"SKU", type text}, {"Product", type text}, {"Model", type text}, {"Subcategory", type text}, {"Category", type text}, {"StandardCost", Currency.Type}, {"ListPrice", Currency.Type}}, "en-US")
+				in
+					#"Changed Types"
+

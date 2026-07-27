@@ -1,0 +1,78 @@
+/// Date data for the native interactive AdventureWorks report.
+table Date
+	lineageTag: 7d28868d-ebd1-4a87-9edf-7c5ddcdf5166
+
+	/// Date Key imported from the prepared AdventureWorks dataset.
+	column 'Date Key'
+		dataType: int64
+		isHidden
+		lineageTag: 3a780dd9-1172-4c78-9d7a-b67519838eba
+		summarizeBy: none
+		sourceColumn: DateKey
+
+	/// Date imported from the prepared AdventureWorks dataset.
+	column Date
+		dataType: string
+		lineageTag: e16df8c9-8d2f-4b4b-a9ea-031d034a9fd6
+		summarizeBy: none
+		sourceColumn: Date
+
+	/// Year imported from the prepared AdventureWorks dataset.
+	column Year
+		dataType: int64
+		lineageTag: 728cf130-085d-4468-acbd-d4ed87b477ed
+		summarizeBy: none
+		sourceColumn: Year
+
+	/// Quarter imported from the prepared AdventureWorks dataset.
+	column Quarter
+		dataType: string
+		lineageTag: 3df874cf-f093-497e-9379-61e17dd879f1
+		summarizeBy: none
+		sourceColumn: Quarter
+
+	/// Month Number imported from the prepared AdventureWorks dataset.
+	column 'Month Number'
+		dataType: int64
+		lineageTag: 94859c33-06e2-429b-acb6-8f5faf6f1471
+		summarizeBy: none
+		sourceColumn: MonthNumber
+
+	/// Month imported from the prepared AdventureWorks dataset.
+	column Month
+		dataType: string
+		lineageTag: c650789a-dcae-401b-a89b-397e72f6bf9d
+		summarizeBy: none
+		sourceColumn: Month
+
+	/// Year Month imported from the prepared AdventureWorks dataset.
+	column 'Year Month'
+		dataType: string
+		lineageTag: d79f3d4c-f168-47fc-8911-44e9afad532b
+		summarizeBy: none
+		sourceColumn: YearMonth
+
+	/// Fiscal Year imported from the prepared AdventureWorks dataset.
+	column 'Fiscal Year'
+		dataType: string
+		lineageTag: 84bfbd97-631d-4594-ba55-d27db079458f
+		summarizeBy: none
+		sourceColumn: FiscalYear
+
+	/// Fiscal Quarter imported from the prepared AdventureWorks dataset.
+	column 'Fiscal Quarter'
+		dataType: string
+		lineageTag: 65067282-c31d-4898-b1cb-4768c74e80bc
+		summarizeBy: none
+		sourceColumn: FiscalQuarter
+
+	partition Date = m
+		mode: import
+		source =
+				let
+					Source = Csv.Document(File.Contents("C:\\Users\\ofaru\\OneDrive\\Masaüstü\\Dashboard\\PowerBI\\Data\\DimDate.csv"), [Delimiter=",", Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+					#"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+					#"Changed Types" = Table.TransformColumnTypes(#"Promoted Headers", {{"DateKey", Int64.Type}, {"Date", type text}, {"Year", Int64.Type}, {"Quarter", type text}, {"MonthNumber", Int64.Type}, {"Month", type text}, {"YearMonth", type text}, {"FiscalYear", type text}, {"FiscalQuarter", type text}}, "en-US")
+				in
+					#"Changed Types"
+

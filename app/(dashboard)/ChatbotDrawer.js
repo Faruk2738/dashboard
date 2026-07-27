@@ -16,7 +16,7 @@ export default function ChatbotDrawer() {
   const [messages, setMessages] = useState([
     { 
       role: 'ai', 
-      content: 'Hello! I am Mira, your AdventureWorks AI Sales Assistant. Ask me anything about our sales performance, customer segments, or forecasting.' 
+      content: 'Hello! I am Beren, your AdventureWorks AI Sales Assistant. Ask me anything about our sales performance, customer segments, or forecasting.' 
     }
   ]);
   const [input, setInput] = useState('');
@@ -36,16 +36,16 @@ export default function ChatbotDrawer() {
   // Multilingual Suggested Questions
   const suggestions = {
     'en-US': [
-      "Which segment brings the most revenue?",
-      "Show sales trend for last 12 months.",
-      "Which country has the highest AOV?",
-      "How can we re-engage At Risk customers?"
+      "What is total revenue?",
+      "What is the profit margin?",
+      "How many active customers do we have?",
+      "What is the average order value?"
     ],
     'tr-TR': [
-      "En çok ciro getiren segment hangisidir?",
-      "Son 12 aylık satış trendini göster.",
-      "En yüksek AOV hangi ülkede?",
-      "Risk grubundaki müşterileri nasıl kazanırız?"
+      "Toplam ciro ne kadar?",
+      "Kâr marjı kaç?",
+      "Kaç aktif müşterimiz var?",
+      "Ortalama sipariş değeri kaç?"
     ]
   };
 
@@ -418,10 +418,10 @@ export default function ChatbotDrawer() {
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-blue-300/70 bg-blue-50 text-blue-400 shadow-sm">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/assets/mira-avatar.png" alt="Mira" className="h-full w-full scale-[1.06] rounded-full object-cover" />
+              <img src="/assets/beren-avatar.png" alt="Beren" className="h-full w-full scale-[1.06] rounded-full object-cover" />
             </div>
             <div>
-              <p className="text-sm font-extrabold tracking-tight">Mira</p>
+              <p className="text-sm font-extrabold tracking-tight">Beren</p>
               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">On-demand Voice</p>
             </div>
           </div>
@@ -435,8 +435,8 @@ export default function ChatbotDrawer() {
                 setMessages([{
                   role: 'ai',
                   content: nextLanguage === 'tr-TR'
-                    ? 'Merhaba! Ben AdventureWorks Yapay Zeka Satış Asistanınızım. Satış performansı, müşteri segmentleri veya tahminler hakkında bana istediğinizi sorabilirsiniz.'
-                    : 'Hello! I am Mira, your AdventureWorks AI Sales Assistant. Ask me anything about our sales performance, customer segments, or forecasting.'
+                    ? 'Merhaba! Ben Beren, AdventureWorks Yapay Zeka Satış Asistanınızım. Satış performansı, müşteri segmentleri veya tahminler hakkında bana istediğinizi sorabilirsiniz.'
+                    : 'Hello! I am Beren, your AdventureWorks AI Sales Assistant. Ask me anything about our sales performance, customer segments, or forecasting.'
                 }]);
               }}
               className="p-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700/40 text-[10px] font-black uppercase flex items-center gap-1 transition-all"
@@ -466,7 +466,7 @@ export default function ChatbotDrawer() {
               <div className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold ${
                 msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-blue-400'
               }`}>
-                {msg.role === 'user' ? <User size={14} /> : <><span className="sr-only">Mira</span>{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/assets/mira-avatar.png" alt="Mira" className="h-full w-full rounded-full object-cover" /></>}
+                {msg.role === 'user' ? <User size={14} /> : <><span className="sr-only">Beren</span>{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/assets/beren-avatar.png" alt="Beren" className="h-full w-full rounded-full object-cover" /></>}
               </div>
               <div className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${
                 msg.role === 'user'

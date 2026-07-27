@@ -1,0 +1,126 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 852.32268186864007,
+            "y": 282.483710293815
+          },
+          "nodeIndex": "Campaign",
+          "nodeLineageTag": "9f23aa11-5e2a-4dad-818f-2c727f04aad8",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 618.32268186864019,
+            "y": -27.058209584498286
+          },
+          "nodeIndex": "Customer",
+          "nodeLineageTag": "826a0819-0df6-4a88-a533-d230c05db0b8",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50.011242851938732,
+            "y": -50
+          },
+          "nodeIndex": "Date",
+          "nodeLineageTag": "7d28868d-ebd1-4a87-9edf-7c5ddcdf5166",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1136.32268186864,
+            "y": 282.483710293815
+          },
+          "nodeIndex": "Forecast",
+          "nodeLineageTag": "7b721c33-3c42-42c5-a382-112f0b75a034",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1420.32268186864,
+            "y": 296.483710293815
+          },
+          "nodeIndex": "Model Metric",
+          "nodeLineageTag": "1f07b9e2-7aa3-42f6-917a-29cf1278f674",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 542.96742058763
+          },
+          "nodeIndex": "Product",
+          "nodeLineageTag": "cb5dd229-5237-4395-b1f0-86d140d1026a",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 334.16791504174392,
+            "y": 269.83291356295956
+          },
+          "nodeIndex": "Sales",
+          "nodeLineageTag": "f20e43a5-757f-4914-b2ff-d1bef3bad162",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 588.19953465368008,
+            "y": 619.99534928935429
+          },
+          "nodeIndex": "Territory",
+          "nodeLineageTag": "506c1b55-cca5-4ebf-a510-5283c0a3b10f",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}
