@@ -104,7 +104,6 @@ export default function IntroPage() {
           controls
           muted={isMuted}
           preload="auto"
-          poster="/assets/intro-light.png"
           onVolumeChange={(event) => setIsMuted(event.currentTarget.muted || event.currentTarget.volume === 0)}
         />
       )}
@@ -144,19 +143,21 @@ export default function IntroPage() {
 
       {ended && (
         <div 
-          className={`absolute inset-0 bg-white flex flex-col justify-center items-center z-10 transition-opacity duration-1000 ${visible ? 'opacity-100' : 'opacity-0'}`}
+          className={`cover-stage-background absolute inset-0 flex flex-col justify-center items-center z-10 transition-opacity duration-1000 ${visible ? 'opacity-100' : 'opacity-0'}`}
         >
+          <div className="cover-stage-aurora absolute inset-0 pointer-events-none" aria-hidden="true" />
+          <div className="cover-border-light absolute z-20 pointer-events-none" aria-hidden="true" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
             src="/assets/intro-light.png" 
             alt="Dashboard Presentation" 
-            className="max-w-[90%] max-h-[70vh] object-contain mb-8 shadow-xl rounded-2xl"
+            className="relative z-10 max-w-[90%] max-h-[70vh] object-contain mb-8 shadow-[0_24px_70px_rgba(2,12,32,.55)] rounded-2xl ring-1 ring-white/70"
           />
           <Link 
             href="/dashboard" 
-            className="px-10 py-4 text-2xl font-bold text-white bg-gradient-to-r from-blue-600 to-blue-800 rounded-full shadow-lg hover:scale-105 active:scale-95 hover:shadow-xl transition-all duration-300 decoration-transparent"
+            className="cover-dashboard-button relative z-10 px-10 py-4 text-2xl font-bold text-white bg-gradient-to-r from-blue-600 to-blue-800 rounded-full shadow-lg hover:scale-105 active:scale-95 hover:shadow-xl transition-all duration-300 decoration-transparent"
           >
-            Go to Dashboard
+            <span className="cover-dashboard-button-text relative z-10">Go to Dashboard</span>
           </Link>
         </div>
       )}

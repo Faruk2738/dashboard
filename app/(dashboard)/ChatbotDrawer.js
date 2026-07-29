@@ -226,10 +226,8 @@ export default function ChatbotDrawer() {
       return true;
     };
 
-    // A locally installed matching female voice starts immediately. The cloud
-    // voice remains a fallback for devices that do not have one.
-    if (playBrowserFallback()) return;
-
+    // Always use Beren's consistent cloud voice first. Browser speech remains
+    // a fallback only when the cloud TTS request actually fails.
     const controller = new AbortController();
     ttsAbortRef.current = controller;
 
@@ -243,8 +241,10 @@ export default function ChatbotDrawer() {
         if (!response.ok) throw new Error('TTS service is unavailable');
         const wav = await response.arrayBuffer();
         if (!wav.byteLength || !audioContext) throw new Error('TTS service returned no playable audio');
+        if (controller.signal.aborted) return;
 
         const audioBuffer = await audioContext.decodeAudioData(wav.slice(0));
+        if (controller.signal.aborted) return;
         const source = audioContext.createBufferSource();
         source.buffer = audioBuffer;
         source.connect(audioContext.destination);
@@ -256,6 +256,9 @@ export default function ChatbotDrawer() {
       })
       .catch((error) => {
         if (error.name !== 'AbortError') playBrowserFallback();
+      })
+      .finally(() => {
+        if (ttsAbortRef.current === controller) ttsAbortRef.current = null;
       });
   }, [getBestVoice, lang, prepareAudio, stopSpeaking]);
 
@@ -466,7 +469,15 @@ export default function ChatbotDrawer() {
               <div className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-xs font-bold ${
                 msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-blue-400'
               }`}>
-                {msg.role === 'user' ? <User size={14} /> : <><span className="sr-only">Beren</span>{/* eslint-disable-next-line @next/next/no-img-element */}<img src="/assets/beren-avatar.png" alt="Beren" className="h-full w-full rounded-full object-cover" /></>}
+                {msg.role === 'user' ? (
+                  <User size={14} />
+                ) : (
+                  <>
+                    <span className="sr-only">Beren</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/assets/beren-avatar.png" alt="Beren" className="h-full w-full rounded-full object-cover" />
+                  </>
+                )}
               </div>
               <div className={`max-w-[78%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${
                 msg.role === 'user'

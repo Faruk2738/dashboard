@@ -112,6 +112,29 @@
   to { --intro-light-angle: 360deg; }
 }
 
+@keyframes cover-stage-aurora-drift {
+  0%, 100% { transform: translate3d(-3%, -2%, 0) scale(1.04) rotate(-2deg); }
+  50% { transform: translate3d(4%, 3%, 0) scale(1.12) rotate(3deg); }
+}
+
+@keyframes cover-dashboard-button-wave {
+  0%, 60%, 76%, 100% { box-shadow: 0 10px 24px rgba(2, 12, 32, .3); }
+  68% { box-shadow: 0 10px 26px rgba(37, 99, 235, .42), 0 0 12px rgba(56, 189, 248, .26), 0 3px 10px rgba(251, 191, 36, .18); }
+}
+
+@keyframes cover-dashboard-shine {
+  0%, 60% { transform: translateX(-190%) skewX(-18deg); opacity: 0; }
+  64% { opacity: .42; }
+  73% { transform: translateX(310%) skewX(-18deg); opacity: 0; }
+  100% { transform: translateX(310%) skewX(-18deg); opacity: 0; }
+}
+
+@keyframes cover-dashboard-text-wave {
+  0%, 63%, 74%, 100% { transform: translateY(0); }
+  67% { transform: translateY(-1px); }
+  70% { transform: translateY(1px); }
+}
+
 @keyframes intro-start-button-glow {
   0%, 58%, 100% { box-shadow: 0 14px 30px rgba(37, 99, 235, .35); }
   68% { box-shadow: 0 14px 34px rgba(37, 99, 235, .48), 0 0 26px rgba(56, 189, 248, .5), 0 0 8px rgba(251, 191, 36, .28); }
@@ -143,6 +166,82 @@
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
+}
+
+.cover-border-light {
+  inset: 10px;
+  border-radius: 28px;
+  padding: 3px;
+  background: conic-gradient(
+    from var(--intro-light-angle),
+    transparent 0deg 286deg,
+    rgba(14, 165, 233, .08) 298deg,
+    rgba(14, 165, 233, .72) 314deg,
+    rgba(37, 99, 235, 1) 326deg,
+    rgba(8, 47, 120, 1) 334deg,
+    rgba(251, 191, 36, 1) 341deg,
+    rgba(253, 230, 138, .98) 346deg,
+    rgba(251, 191, 36, .28) 354deg,
+    transparent 360deg
+  );
+  filter: drop-shadow(0 0 5px rgba(14, 165, 233, .72)) drop-shadow(0 0 12px rgba(37, 99, 235, .42)) drop-shadow(0 0 7px rgba(251, 191, 36, .32));
+  animation: intro-border-light-orbit 5.5s linear infinite;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.cover-stage-background {
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 16% 20%, rgba(14, 165, 233, .28), transparent 30%),
+    radial-gradient(circle at 84% 76%, rgba(37, 99, 235, .34), transparent 34%),
+    linear-gradient(135deg, #041329 0%, #082c59 48%, #061a36 100%);
+}
+
+.cover-stage-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(125, 211, 252, .045) 1px, transparent 1px), linear-gradient(90deg, rgba(125, 211, 252, .045) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: radial-gradient(circle at center, #000 0 34%, transparent 78%);
+}
+
+.cover-stage-aurora {
+  inset: -20%;
+  opacity: .82;
+  background:
+    radial-gradient(ellipse at 28% 38%, rgba(56, 189, 248, .3), transparent 34%),
+    radial-gradient(ellipse at 72% 60%, rgba(99, 102, 241, .25), transparent 36%),
+    radial-gradient(ellipse at 50% 86%, rgba(251, 191, 36, .1), transparent 25%);
+  filter: blur(38px);
+  animation: cover-stage-aurora-drift 11s ease-in-out infinite;
+}
+
+.cover-dashboard-button {
+  isolation: isolate;
+  overflow: hidden;
+  animation: cover-dashboard-button-wave 5.5s ease-in-out infinite;
+}
+
+.cover-dashboard-button::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: -35% auto -35% -18%;
+  width: 26%;
+  background: linear-gradient(90deg, transparent, rgba(253, 230, 138, .52), rgba(255, 255, 255, .65), transparent);
+  filter: blur(1px);
+  opacity: 0;
+  animation: cover-dashboard-shine 5.5s ease-in-out infinite;
+}
+
+.cover-dashboard-button-text {
+  display: inline-block;
+  animation: cover-dashboard-text-wave 5.5s ease-in-out infinite;
 }
 
 .intro-start-button {
@@ -416,6 +515,8 @@
   .mira-finale-balloon { animation: none; }
   .mira-welcome-aurora { animation: none; }
   .mira-welcome-aurora::before, .mira-welcome-orb { animation: none; }
-  .intro-border-light { animation: none; --intro-light-angle: 32deg; }
+  .cover-stage-aurora { animation: none; }
+  .cover-dashboard-button, .cover-dashboard-button::after, .cover-dashboard-button-text { animation: none; }
+  .intro-border-light, .cover-border-light { animation: none; --intro-light-angle: 32deg; }
   .intro-start-button, .intro-start-button::after { animation: none; }
 }
