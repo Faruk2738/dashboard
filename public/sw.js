@@ -1,4 +1,4 @@
-const CACHE_NAME = 'adventureworks-pwa-v3';
+const CACHE_NAME = 'adventureworks-pwa-v4';
 const APP_SHELL = ['/', '/manifest.webmanifest', '/icon'];
 
 self.addEventListener('install', (event) => {
@@ -21,6 +21,18 @@ self.addEventListener('fetch', (event) => {
       caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
       return response;
     }).catch(() => caches.match(request).then((cached) => cached || caches.match('/'))));
+    return;
+  }
+
+  // Keep images fresh across deployments while retaining an offline fallback.
+  if (request.destination === 'image') {
+    event.respondWith(fetch(request).then((response) => {
+      if (response.ok) {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+      }
+      return response;
+    }).catch(() => caches.match(request)));
     return;
   }
 

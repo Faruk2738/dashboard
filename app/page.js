@@ -149,7 +149,7 @@ export default function IntroPage() {
           <div className="cover-border-light absolute z-20 pointer-events-none" aria-hidden="true" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img 
-            src="/assets/intro-light.png" 
+            src="/assets/intro-light.png?v=20260729-team"
             alt="Dashboard Presentation" 
             className="relative z-10 max-w-[90%] max-h-[70vh] object-contain mb-8 shadow-[0_24px_70px_rgba(2,12,32,.55)] rounded-2xl ring-1 ring-white/70"
           />
