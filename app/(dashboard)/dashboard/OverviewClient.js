@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { Bar, BarChart, CartesianGrid, Cell, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Cell, LabelList, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import dynamic from 'next/dynamic';
 import { ArrowDownRight, ArrowUpRight, Award, Clock3, DollarSign, Percent, RefreshCw, ShoppingBag, TrendingUp, Users } from 'lucide-react';
 import AnimatedBikeTitle from './AnimatedBikeTitle';
@@ -15,6 +15,41 @@ const number = (value) => new Intl.NumberFormat('en-US').format(Math.round(value
 function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return <div className="border border-slate-300 bg-white px-2.5 py-1.5 text-[10px] shadow-lg"><b>{label}</b>{payload.map((item) => <p key={item.dataKey} style={{ color: item.color || item.fill }}>{item.name}: {money(item.value)}</p>)}</div>;
+}
+
+function ActualTrendLabel({ x, y, value, index }) {
+  if (value == null || index % 6 !== 0) return null;
+  return <text x={x} y={y - 7} fill="#d97706" stroke="#fff" strokeWidth="2.4" paintOrder="stroke" strokeLinejoin="round" fontSize="8.5" fontWeight="900" textAnchor="middle">{money(value)}</text>;
+}
+
+function ForecastTrendLabel({ x, y, value, index, totalPoints }) {
+  if (value == null || index !== totalPoints - 1) return null;
+  return <text x={x} y={y - 7} fill="#e11d48" stroke="#fff" strokeWidth="2.4" paintOrder="stroke" strokeLinejoin="round" fontSize="8.5" fontWeight="900" textAnchor="middle">{money(value)}</text>;
+}
+
+function CategoryValueLabel({ cx, cy, midAngle, outerRadius, value, payload, index }) {
+  const edgeRadius = outerRadius + 2;
+  const bendRadius = outerRadius + 11;
+  const radians = -midAngle * (Math.PI / 180);
+  const direction = Math.cos(radians) >= 0 ? 1 : -1;
+  const edgeX = cx + edgeRadius * Math.cos(radians);
+  const edgeY = cy + edgeRadius * Math.sin(radians);
+  const bendX = cx + bendRadius * Math.cos(radians);
+  const bendY = cy + bendRadius * Math.sin(radians);
+  const categoryOffset = payload?.name === 'Clothing' ? -9 : payload?.name === 'Accessories' ? 9 : 0;
+  const labelY = bendY + categoryOffset;
+  const cornerX = bendX + direction * 8;
+  const labelX = cornerX + direction * 13;
+  const lineEndX = labelX - direction * 3;
+  const connectorPath = `M ${edgeX} ${edgeY} L ${bendX} ${bendY} L ${cornerX} ${labelY} L ${lineEndX} ${labelY}`;
+  const connectorColor = colors[index % colors.length];
+
+  return <g>
+    <path d={connectorPath} fill="none" stroke="#fff" strokeWidth="3.4" strokeLinejoin="round" />
+    <path d={connectorPath} fill="none" stroke={connectorColor} strokeWidth="1.5" strokeLinejoin="round" />
+    <rect x={edgeX - 1.8} y={edgeY - 1.8} width="3.6" height="3.6" rx=".7" fill="#fff" stroke={connectorColor} strokeWidth="1" />
+    <text x={labelX} y={labelY} fill="#174f9f" fontSize="10" fontWeight="800" textAnchor={direction > 0 ? 'start' : 'end'} dominantBaseline="central">{money(value)}</text>
+  </g>;
 }
 
 function KpiCard({ label, value, change, Icon, color, down = false }) {
@@ -83,13 +118,13 @@ export default function OverviewClient({ data: initialData }) {
       {(selectedCategory || selectedTerritory || selectedProduct) && <div className="flex items-center justify-between border-x border-b border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-bold text-blue-800"><span>Active filter: {[selectedCategory, selectedTerritory, selectedProduct].filter(Boolean).join(' • ')}</span><button type="button" onClick={clearFilters} className="rounded bg-white px-2 py-1 text-blue-700 shadow-sm hover:bg-blue-100">Clear filter</button></div>}
 
       <div className="mt-2 grid grid-cols-5 gap-2">
-        <Panel title="Sales Trend (Actual vs Forecast)" className="col-span-3"><div className="h-[188px] p-1.5"><ResponsiveContainer width="100%" height="100%"><LineChart data={trend} margin={{ top: 10, right: 8, bottom: 0, left: -12 }}><CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" vertical={false} /><XAxis dataKey="month" tick={{ fontSize: 10 }} interval={6} /><YAxis tick={{ fontSize: 10 }} tickFormatter={(value) => `$${Math.round(value / 1e6)}M`} /><Tooltip content={<ChartTooltip />} /><Line name="Actual Sales" dataKey="actual" stroke="#084cff" strokeWidth={2} dot={false} connectNulls /><Line name="Forecast" dataKey="forecast" stroke="#084cff" strokeWidth={1.7} strokeDasharray="4 3" dot={false} connectNulls /></LineChart></ResponsiveContainer></div></Panel>
-        <Panel title="Sales by Category" className="col-span-2"><div className="relative h-[188px]"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={categories} dataKey="value" cx="40%" cy="52%" innerRadius={44} outerRadius={72} paddingAngle={1} onClick={(item) => toggleCategory(item.name)}>{categories.map((item, index) => <Cell key={item.name} fill={colors[index]} className="cursor-pointer" />)}</Pie><Tooltip content={<ChartTooltip />} /></PieChart></ResponsiveContainer><div className="pointer-events-none absolute left-[40%] top-1/2 -translate-x-1/2 -translate-y-1/2 text-center"><p className="text-[15px] font-black text-[#082d61]">{money(data.totalRevenue)}</p><p className="text-[9px] font-semibold text-slate-500">Total Sales</p></div><div className="absolute left-[64%] top-1/2 -translate-y-1/2 space-y-2.5 text-[10px] font-semibold text-slate-700">{categories.map((item, index) => <button onClick={() => toggleCategory(item.name)} key={item.name} className="block text-left whitespace-nowrap hover:font-black"><span className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full" style={{ background: colors[index] }} />{item.name}</button>)}</div></div></Panel>
+        <Panel title="Sales Trend (Actual vs Forecast)" className="col-span-3"><div className="h-[188px] p-1.5"><ResponsiveContainer width="100%" height="100%"><LineChart data={trend} margin={{ top: 20, right: 18, bottom: 0, left: -12 }}><CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" vertical={false} /><XAxis dataKey="month" tick={{ fontSize: 10 }} interval={6} /><YAxis tick={{ fontSize: 10 }} tickFormatter={(value) => `$${Math.round(value / 1e6)}M`} /><Tooltip content={<ChartTooltip />} /><Line name="Actual Sales" dataKey="actual" stroke="#084cff" strokeWidth={2} dot={false} connectNulls><LabelList dataKey="actual" content={<ActualTrendLabel />} /></Line><Line name="Forecast" dataKey="forecast" stroke="#7c3aed" strokeWidth={1.7} strokeDasharray="4 3" dot={{ r: 2, fill: '#7c3aed' }} connectNulls><LabelList dataKey="forecast" content={<ForecastTrendLabel totalPoints={trend.length} />} /></Line></LineChart></ResponsiveContainer></div></Panel>
+        <Panel title="Sales by Category" className="col-span-2"><div className="relative h-[188px]"><div className="absolute inset-x-0 top-1.5 z-10 flex items-center justify-center gap-2.5 text-[12px] font-medium tracking-tight text-slate-700">{categories.map((item, index) => <button onClick={() => toggleCategory(item.name)} key={item.name} className="flex items-center whitespace-nowrap transition-colors hover:text-blue-700"><span className="mr-1 inline-block h-2.5 w-2.5 rounded-full" style={{ background: colors[index] }} />{item.name}</button>)}</div><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={categories} dataKey="value" cx="50%" cy="57%" innerRadius={36} outerRadius={56} paddingAngle={1} labelLine={false} label={<CategoryValueLabel />} onClick={(item) => toggleCategory(item.name)}>{categories.map((item, index) => <Cell key={item.name} fill={colors[index]} className="cursor-pointer" />)}</Pie><Tooltip content={<ChartTooltip />} /></PieChart></ResponsiveContainer><div className="pointer-events-none absolute left-1/2 top-[57%] -translate-x-1/2 -translate-y-1/2 text-center"><p className="text-[12px] font-black text-[#082d61]">{money(data.totalRevenue)}</p><p className="text-[9px] font-extrabold text-slate-600">Total Sales</p></div></div></Panel>
       </div>
 
       <div className="mt-2 grid grid-cols-5 gap-2">
         <Panel title="Sales by Country" className="col-span-3"><div className="h-[275px] overflow-hidden bg-[#e1eefc]"><WorldMap territories={data.territorySales} onMarketSelect={toggleTerritory} /></div></Panel>
-        <Panel title="Top 10 Products by Sales" className="col-span-2"><div className="h-[275px] p-1"><ResponsiveContainer width="100%" height="100%"><BarChart data={products} layout="vertical" margin={{ top: 4, right: 12, bottom: 0, left: 18 }}><XAxis type="number" tick={{ fontSize: 9 }} tickFormatter={(value) => money(value)} /><YAxis type="category" dataKey="name" width={103} tick={{ fontSize: 9 }} /><Tooltip content={<ChartTooltip />} /><Bar name="Sales" dataKey="sales" barSize={10} className="cursor-pointer" onClick={(entry) => toggleProduct(entry.name)}>{products.map((product) => <Cell key={product.name} fill={selectedProduct && selectedProduct !== product.name ? '#b9d1f3' : '#0754c8'} />)}</Bar></BarChart></ResponsiveContainer></div></Panel>
+        <Panel title="Top 10 Products by Sales" className="col-span-2"><div className="h-[275px] p-1"><ResponsiveContainer width="100%" height="100%"><BarChart data={products} layout="vertical" margin={{ top: 4, right: 54, bottom: 0, left: -24 }}><XAxis type="number" tick={{ fontSize: 9 }} tickFormatter={(value) => money(value)} /><YAxis type="category" dataKey="name" width={100} tick={{ fontSize: 9 }} /><Tooltip content={<ChartTooltip />} /><Bar name="Sales" dataKey="sales" barSize={10} className="cursor-pointer" onClick={(entry) => toggleProduct(entry.name)}>{products.map((product) => <Cell key={product.name} fill={selectedProduct && selectedProduct !== product.name ? '#b9d1f3' : '#0754c8'} />)}<LabelList dataKey="sales" position="right" formatter={money} fill="#d97706" stroke="#fff" strokeWidth={2.2} paintOrder="stroke" fontSize={8.5} fontWeight={900} /></Bar></BarChart></ResponsiveContainer></div></Panel>
       </div>
 
       <Panel title="Key Insights" className="mt-2"><div className="grid grid-cols-2 gap-2 p-2.5 lg:grid-cols-4"><div className="flex items-center gap-2.5 rounded border border-slate-200 bg-slate-50 p-2.5"><TrendingUp className="text-emerald-600" size={25} /><div><p className="text-[10px] font-semibold text-slate-600">Sales increased by</p><p className="text-xl font-black text-emerald-600">12.4%</p><p className="text-[9px] text-slate-500">compared to last year.</p></div></div><div className="flex items-center gap-2.5 rounded border border-slate-200 bg-slate-50 p-2.5"><ArrowDownRight className="text-rose-500" size={25} /><div><p className="text-[10px] font-semibold text-slate-600">Profit decreased by</p><p className="text-xl font-black text-rose-500">3.2%</p><p className="text-[9px] text-slate-500">compared to last year.</p></div></div><div className="flex items-center gap-2.5 rounded border border-slate-200 bg-slate-50 p-2.5"><TrendingUp className="text-emerald-600" size={25} /><div><p className="text-[10px] font-semibold text-slate-600">Repeat customer rate</p><p className="text-xl font-black text-emerald-600">{Number(data.repeatPurchaseRate || 0).toFixed(1)}%</p><p className="text-[9px] text-slate-500">shows strong loyalty.</p></div></div><div className="flex items-center gap-2.5 rounded border border-slate-200 bg-slate-50 p-2.5"><Clock3 className="text-[#1458af]" size={25} /><div><p className="text-[10px] font-semibold text-slate-600">Forecast for next month</p><p className="text-xl font-black text-[#1458af]">{money(nextForecast)}</p><p className="text-[9px] text-slate-500">expected sales.</p></div></div></div></Panel>
